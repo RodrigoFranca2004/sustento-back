@@ -7,8 +7,40 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id    Int    @id @default(autoincrement())
+//MODELO USUÁRIO - COMEÇO
+
+model Users {
+  user_id    Int    @id @default(autoincrement())
   name  String
   email String @unique
+  hash_password String
+  age Int?
+  gender Gender?
+  weight Decimal?
+  height Decimal?
+  objective Objective
+  activity_lvl ActivityLvl
+  active_plan_id Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
+
+enum Gender{
+  M
+  F
+}
+
+enum Objective{
+  LOSE_WEIGHT
+  GAIN_MUSCLE
+  MAINTENANCE
+}
+
+enum ActivityLvl {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  INTENSE
+}
+
+// MODELO USUÁRIO - FIM
