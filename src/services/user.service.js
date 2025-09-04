@@ -1,25 +1,28 @@
-const User = require("../entities/User");
-const userRepository = require("../repositories/user.repository");
+import { prisma } from "../config/prisma.js";
 
-async function createUser(data) {
-  const user = new User(data);
-  return await userRepository.save(user);
+export async function createUser(data) {
+  return await prisma.users.create({ data });
 }
 
-async function listUsers() {
-  return await userRepository.findAll();
+export async function listUsers() {
+  return await prisma.users.findMany();
 }
 
-async function getUser(id) {
-  return await userRepository.findById(id);
+export async function getUser(id) {
+  return await prisma.users.findUnique({
+    where: { user_id: Number(id) },
+  });
 }
 
-async function updateUser(id, data) {
-  return await userRepository.update(id, data);
+export async function updateUser(id, data) {
+  return await prisma.users.update({
+    where: { user_id: Number(id) },
+    data,
+  });
 }
 
-async function deleteUser(id) {
-  return await userRepository.remove(id);
+export async function deleteUser(id) {
+  return await prisma.users.delete({
+    where: { user_id: Number(id) },
+  });
 }
-
-module.exports = { createUser, listUsers, getUser, updateUser, deleteUser };
