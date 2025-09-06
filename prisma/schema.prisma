@@ -16,8 +16,8 @@ model Users {
   hash_password String
   age Int?
   gender Gender?
-  weight Decimal?
-  height Decimal?
+  weight Decimal? @db.Decimal(5,2) // kg up to 999.99
+  height Decimal? @db.Decimal(5,2) // cm up to 999.99
   objective Objective
   activity_lvl ActivityLvl
   active_plan_id Int?
