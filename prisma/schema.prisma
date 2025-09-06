@@ -11,4 +11,34 @@ model User {
   id    Int    @id @default(autoincrement())
   name  String
   email String @unique
+  hash_password String
+  age Int?
+  gender Gender?
+  weight Decimal? @db.Decimal(5,2) // kg up to 999.99
+  height Decimal? @db.Decimal(5,2) // cm up to 999.99
+  objective Objective
+  activity_lvl ActivityLvl
+  active_plan_id Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
+
+enum Gender{
+  M
+  F
+}
+
+enum Objective{
+  LOSE_WEIGHT
+  GAIN_MUSCLE
+  MAINTENANCE
+}
+
+enum ActivityLvl {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  INTENSE
+}
+
+// MODELO USUÁRIO - FIM
