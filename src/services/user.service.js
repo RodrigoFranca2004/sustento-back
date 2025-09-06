@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma.js";
+
 import bcrypt from "bcrypt";
 
 export async function createUser(data) {
@@ -11,26 +12,24 @@ export async function createUser(data) {
   });
 }
 
-async function listUsers() {
-  return await userRepository.findAll();
+export async function listUsers() {
+  return await prisma.users.findMany();
 }
 
-async function getUser(id) {
-  return await userRepository.findById(id);
+export async function getUser(id) {
+  return await prisma.users.findUnique({
+    where: { user_id: Number(id) },
+  });
 }
 
 export async function updateUser(id, data) {
   if (data.hash_password) {
     data.hash_password = await bcrypt.hash(data.hash_password, 10);
   }
-  return await prisma.users.update({
+}
+
+export async function deleteUser(id) {
+  return await prisma.users.delete({
     where: { user_id: Number(id) },
-    data,
   });
 }
-
-async function deleteUser(id) {
-  return await userRepository.remove(id);
-}
-
-module.exports = { createUser, listUsers, getUser, updateUser, deleteUser };

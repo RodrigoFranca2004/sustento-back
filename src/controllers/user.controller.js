@@ -1,41 +1,40 @@
-const userService = require("../services/user.service");
+import * as UserService from "../services/user.service.js"
 
-async function createUser(req, res) {
+export async function createUser(req, res) {
   try {
-    const user = await userService.createUser(req.body);
+    const user = await UserService.createUser(req.body);
     res.status(201).json(user);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 }
 
-async function listUsers(req, res) {
-  const users = await userService.listUsers();
+export async function listUsers(req, res) {
+  const users = await UserService.listUsers();
   res.json(users);
 }
 
-async function getUser(req, res) {
-  const user = await userService.getUser(req.params.id);
+export async function getUser(req, res) {
+  const user = await UserService.getUser(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
   res.json(user);
 }
 
-async function updateUser(req, res) {
+export async function updateUser(req, res) {
   try {
-    const user = await userService.updateUser(req.params.id, req.body);
+    const user = await UserService.updateUser(req.params.id, req.body);
     res.json(user);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 }
 
-async function deleteUser(req, res) {
+export async function deleteUser(req, res) {
   try {
-    await userService.deleteUser(req.params.id);
-    res.json({ message: "User deleted" });
+    await UserService.deleteUser(req.params.id);
+    res.status(204).send()
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 }
 
-module.exports = { createUser, listUsers, getUser, updateUser, deleteUser };
