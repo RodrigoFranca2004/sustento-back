@@ -1,9 +1,14 @@
-const User = require("../entities/User");
-const userRepository = require("../repositories/user.repository");
+import { prisma } from "../config/prisma.js";
+import bcrypt from "bcrypt";
 
-async function createUser(data) {
-  const user = new User(data);
-  return await userRepository.save(user);
+export async function createUser(data) {
+  const hashed = await bcrypt.hash(data.hash_password, 10);
+  return await prisma.users.create({
+    data: {
+      ...data,
+      hash_password: hashed,
+    },
+  });
 }
 
 async function listUsers() {
@@ -14,8 +19,14 @@ async function getUser(id) {
   return await userRepository.findById(id);
 }
 
-async function updateUser(id, data) {
-  return await userRepository.update(id, data);
+export async function updateUser(id, data) {
+  if (data.hash_password) {
+    data.hash_password = await bcrypt.hash(data.hash_password, 10);
+  }
+  return await prisma.users.update({
+    where: { user_id: Number(id) },
+    data,
+  });
 }
 
 async function deleteUser(id) {
