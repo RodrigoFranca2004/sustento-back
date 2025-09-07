@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-//MODELO USER - START
+//MODEL USER - START
 
 model Users {
   user_id    Int    @id @default(autoincrement())
@@ -46,13 +46,12 @@ enum ActivityLvl {
   INTENSE
 }
 
-// MODELO USER - END
+// MODEL USER - END
 
 // MODEL MEALPLANS - START
 
 model MealPlans {
   plan_id        Int     @id @default(autoincrement())
-  user_id        Int
   plan_name      String?
   target_calories Decimal?
   target_protein  Decimal?
@@ -63,7 +62,12 @@ model MealPlans {
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
+  // foreign keys relations (imported)
+  user_id        Int
   user Users @relation(fields: [user_id], references: [user_id])
+
+  // foreign keys relations (exported)
+  Meals Meals[]
 }
 
 enum Source {
@@ -103,3 +107,21 @@ model UserEvolutions {
 }
 
 // MODEL USER_EVOLUTIONS - END
+
+// MODEL MEALS - START
+
+model Meals {
+  meal_id Int @id @default(autoincrement())
+  meal_name String 
+  time DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // foreign keys relations (imported)
+  plan_id Int
+  plan MealPlans @relation(fields: [plan_id], references: [plan_id])
+
+  // index, it blocks the same plan_id and meal_name in a table
+  @@unique([plan_id, meal_name])
+
+}
