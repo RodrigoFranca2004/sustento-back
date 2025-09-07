@@ -23,6 +23,8 @@ model Users {
   active_plan_id Int?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  evolutions      UserEvolutions[]
 }
 
 enum Gender{
@@ -44,3 +46,34 @@ enum ActivityLvl {
 }
 
 // MODELO USUÁRIO - FIM
+
+//MODEL RESTRICTIONS - START
+
+model Restrictions {
+  restriction_id    Int    @id @default(autoincrement())
+  restriction_name RestrictionName
+}
+
+enum RestrictionName {
+  VEGAN
+  VEGETARIAN
+  GLUTEN_FREE
+  LACTOSE_FREE
+}
+
+// MODEL RESTRICTIONS - END
+
+//MODEL USER_EVOLUTIONS - START
+
+model UserEvolutions {
+  evolution_id   Int      @id @default(autoincrement())
+  user_id        Int
+  user           Users    @relation(fields: [user_id], references: [user_id])
+  weight         Decimal? @db.Decimal(5,2) // kg up to 999.99
+  bmi            Decimal? @db.Decimal(5,2)
+  waist          Decimal? @db.Decimal(5,2) // cm up to 999.99
+  body_fat       Decimal? @db.Decimal(5,2) // kg up to 999.99
+  registered_at  DateTime @default(now())
+}
+
+// MODEL USER_EVOLUTIONS - END
