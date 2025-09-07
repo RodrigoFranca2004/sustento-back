@@ -78,6 +78,8 @@ enum Source {
 model Restrictions {
   restriction_id    Int    @id @default(autoincrement())
   restriction_name RestrictionName
+
+   @@unique([restriction_id, restriction_name])
 }
 
 enum RestrictionName {
@@ -117,6 +119,8 @@ model Aliments {
   measurement_unit    MeasurementUnit
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
+
+   @@unique([aliment_id, name])
 }
 
 enum MeasurementUnit{
