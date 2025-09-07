@@ -2,7 +2,7 @@ import { prisma } from "../config/prisma.js";
 import { convertTime } from "../utils/convertTime.js";
 
 export async function createMeal(data) {
-  const time = convertTime(data.time);
+  const time = data.time ? convertTime(data.time) : null;
   return await prisma.meals.create({
     data: {
       ...data,

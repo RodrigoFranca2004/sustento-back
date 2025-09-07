@@ -1,9 +1,12 @@
 import { prisma } from "../config/prisma.js";
+import { convertTime } from "../utils/convertTime.js";
 
 export async function createMealRecord(data) {
+  const meal_moment = data.meal_moment ? convertTime(data.meal_moment) : null;
   return await prisma.mealRecords.create({
     data: {
       ...data,
+      meal_moment
     },
   });
 }
@@ -19,9 +22,13 @@ export async function getMealRecord(id) {
 }
 
 export async function updateMealRecord(id, data) {
+  const meal_moment = data.meal_moment ? convertTime(data.meal_moment) : undefined;
     return await prisma.mealRecords.update({
         where: { record_id: Number(id) },
-        data,
+        data: {
+          ...data,
+          ...(meal_moment && { meal_moment }),
+        },
     });
 }
 
