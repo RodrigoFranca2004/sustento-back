@@ -23,6 +23,7 @@ model Users {
   active_plan_id Int?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  MealPlans MealPlans[]
 }
 
 enum Gender{
@@ -44,3 +45,28 @@ enum ActivityLvl {
 }
 
 // MODELO USUÁRIO - FIM
+
+// MODEL MEALPLANS - START
+
+model MealPlans {
+  plan_id        Int     @id @default(autoincrement())
+  user_id        Int
+  plan_name      String?
+  target_calories Decimal?
+  target_protein  Decimal?
+  target_carbs    Decimal?
+  target_fat      Decimal?
+  source         Source
+  active         Boolean @default(false)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  user Users @relation(fields: [user_id], references: [user_id])
+}
+
+enum Source {
+  AUTOMATIC
+  MANUAL
+}
+// MODEL MEALPLANS - END
+
