@@ -82,6 +82,8 @@ enum Source {
 model Restrictions {
   restriction_id    Int    @id @default(autoincrement())
   restriction_name RestrictionName
+
+   @@unique([restriction_id, restriction_name])
 }
 
 enum RestrictionName {
@@ -125,3 +127,32 @@ model Meals {
   @@unique([plan_id, meal_name])
 
 }
+
+// MODEL MEALS - END
+
+//MODEL ALIMENT - START
+
+model Aliments {
+  aliment_id          Int      @id @default(autoincrement())
+  name                String
+  calories            Decimal @db.Decimal(5,2) // kcal up to 999.99
+  protein             Decimal @db.Decimal(5,2) // g up to 999.99
+  carbohydrate        Decimal @db.Decimal(5,2) // g up to 999.99
+  fat                 Decimal @db.Decimal(5,2) // g up to 999.99
+  measurement_amount  Decimal @db.Decimal(5,2)
+  measurement_unit    MeasurementUnit
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+   @@unique([aliment_id, name])
+}
+
+enum MeasurementUnit{
+  KCAL    // calories
+  G       // grams
+  ML      // mililiters
+  UN      // units
+}
+
+// MODEL ALIMENT - END
+
