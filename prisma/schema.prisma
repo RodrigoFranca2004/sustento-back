@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-//MODELO USUÁRIO - COMEÇO
+//MODELO USER - START
 
 model Users {
   user_id    Int    @id @default(autoincrement())
@@ -23,7 +23,9 @@ model Users {
   active_plan_id Int?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  
   MealPlans MealPlans[]
+  Evolutions      UserEvolutions[]
 }
 
 enum Gender{
@@ -44,7 +46,7 @@ enum ActivityLvl {
   INTENSE
 }
 
-// MODELO USUÁRIO - FIM
+// MODELO USER - END
 
 // MODEL MEALPLANS - START
 
@@ -70,3 +72,34 @@ enum Source {
 }
 // MODEL MEALPLANS - END
 
+
+//MODEL RESTRICTIONS - START
+
+model Restrictions {
+  restriction_id    Int    @id @default(autoincrement())
+  restriction_name RestrictionName
+}
+
+enum RestrictionName {
+  VEGAN
+  VEGETARIAN
+  GLUTEN_FREE
+  LACTOSE_FREE
+}
+
+// MODEL RESTRICTIONS - END
+
+//MODEL USER_EVOLUTIONS - START
+
+model UserEvolutions {
+  evolution_id   Int      @id @default(autoincrement())
+  user_id        Int
+  user           Users    @relation(fields: [user_id], references: [user_id])
+  weight         Decimal? @db.Decimal(5,2) // kg up to 999.99
+  bmi            Decimal? @db.Decimal(5,2)
+  waist          Decimal? @db.Decimal(5,2) // cm up to 999.99
+  body_fat       Decimal? @db.Decimal(5,2) // kg up to 999.99
+  registered_at  DateTime @default(now())
+}
+
+// MODEL USER_EVOLUTIONS - END
