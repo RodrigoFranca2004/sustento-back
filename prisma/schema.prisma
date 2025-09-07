@@ -24,8 +24,9 @@ model Users {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   
-  MealPlans MealPlans[]
-  Evolutions      UserEvolutions[]
+  MealPlans           MealPlans[]
+  Evolutions          UserEvolutions[]
+  UserRestrictions    UserRestrictions[]
 }
 
 enum Gender{
@@ -83,7 +84,8 @@ model Restrictions {
   restriction_id    Int    @id @default(autoincrement())
   restriction_name RestrictionName
 
-   @@unique([restriction_id, restriction_name])
+  UserRestrictions UserRestrictions[]
+  @@unique([restriction_id, restriction_name])
 }
 
 enum RestrictionName {
@@ -156,3 +158,16 @@ enum MeasurementUnit{
 
 // MODEL ALIMENT - END
 
+// MODEL USER_RESTRICTION - START
+
+model UserRestrictions {
+  user_id          Int
+  restriction_id   Int
+
+  user             Users    @relation(fields: [user_id], references: [user_id])
+  restriction      Restrictions  @relation(fields: [restriction_id], references: [restriction_id])
+
+  @@id([user_id, restriction_id])
+}
+
+// MODEL USER_RESTRICTION - END
