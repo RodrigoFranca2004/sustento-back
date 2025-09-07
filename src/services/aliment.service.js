@@ -12,7 +12,7 @@ export async function listAliments() {
   return await prisma.aliments.findMany();
 }
 
-export async function getAliments(id) {
+export async function getAliment(id) {
   return await prisma.aliments.findUnique({
     where: { aliment_id: Number(id) },
   });
