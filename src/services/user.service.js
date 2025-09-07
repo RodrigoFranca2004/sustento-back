@@ -26,6 +26,10 @@ export async function updateUser(id, data) {
   if (data.hash_password) {
     data.hash_password = await bcrypt.hash(data.hash_password, 10);
   }
+  return await prisma.users.update({
+    where: { user_id: Number(id) },
+    data,
+  });
 }
 
 export async function deleteUser(id) {
