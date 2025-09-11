@@ -7,6 +7,7 @@ import mealRoutes from "./meal.routes.js"
 import alimentRoutes from "./aliment.routes.js"
 import userRestrictionRoutes from "./userRestriction.routes.js"
 import mealAlimentRoutes from "./mealAliment.routes.js"
+import authRoutes from "./auth.routes.js"
 
 const router = Router()
 
@@ -18,5 +19,6 @@ router.use("/meals", mealRoutes);
 router.use("/aliments", alimentRoutes);
 router.use("/userRestrictions", userRestrictionRoutes);
 router.use("/mealAliments", mealAlimentRoutes);
+router.use("/auth", authRoutes);
 
 export default router
