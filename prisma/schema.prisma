@@ -18,8 +18,8 @@ model Users {
   gender Gender?
   weight Decimal? @db.Decimal(5,2) // kg up to 999.99
   height Decimal? @db.Decimal(5,2) // cm up to 999.99
-  objective Objective
-  activity_lvl ActivityLvl
+  objective Objective?
+  activity_lvl ActivityLvl?
   active_plan_id Int?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -27,6 +27,7 @@ model Users {
   MealPlans           MealPlans[]
   Evolutions          UserEvolutions[]
   UserRestrictions    UserRestrictions[]
+  PasswordResets       PasswordResets[]
 }
 
 enum Gender{
@@ -48,6 +49,18 @@ enum ActivityLvl {
 }
 
 // MODEL USER - END
+
+// MODEL PASSWORD_RESET - START
+
+model PasswordResets {
+  id Int @id @default(autoincrement())
+  token String @unique
+  expiresAt DateTime
+  
+  // foreign keys relations (imported)
+  user_id Int
+  user Users @relation(fields: [user_id], references: [user_id])
+}
 
 // MODEL MEALPLANS - START
 

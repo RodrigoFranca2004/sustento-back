@@ -2,16 +2,6 @@ import { prisma } from "../config/prisma.js";
 
 import bcrypt from "bcrypt";
 
-export async function createUser(data) {
-  const hashed = await bcrypt.hash(data.hash_password, 10);
-  return await prisma.users.create({
-    data: {
-      ...data,
-      hash_password: hashed,
-    },
-  });
-}
-
 export async function listUsers() {
   return await prisma.users.findMany();
 }
