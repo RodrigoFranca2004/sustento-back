@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `users` MODIFY `activity_lvl` ENUM('SEDENTARY', 'LIGHT', 'MODERATE', 'INTENSE') NULL,
+    MODIFY `objective` ENUM('LOSE_WEIGHT', 'GAIN_MUSCLE', 'MAINTENANCE') NULL;
