@@ -1,14 +1,5 @@
 import * as UserService from "../services/user.service.js"
 
-export async function createUser(req, res) {
-  try {
-    const user = await UserService.createUser(req.body);
-    res.status(201).json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-}
-
 export async function listUsers(req, res) {
   const users = await UserService.listUsers();
   res.json(users);
