@@ -25,6 +25,7 @@ model Users {
   updated_at DateTime @updatedAt
   
   MealPlans           MealPlans[]
+  MealRecords         MealRecords[]
   Evolutions          UserEvolutions[]
   UserRestrictions    UserRestrictions[]
   PasswordResets       PasswordResets[]
@@ -81,7 +82,7 @@ model MealPlans {
   user Users @relation(fields: [user_id], references: [user_id])
 
   // foreign keys relations (exported)
-  Meals Meals[]
+  Meals           Meals[]
 }
 
 enum Source {
@@ -144,6 +145,7 @@ model Meals {
   // index, it blocks the same plan_id and meal_name in a table
   @@unique([plan_id, meal_name])
 
+  MealRecords     MealRecords[]
 }
 
 // MODEL MEALS - END
@@ -164,8 +166,10 @@ model Aliments {
 
    @@unique([aliment_id, name])
 
+   MealRecords     MealRecords[]
    // foreign keys relations (exported)
-  MealAliments MealAliments[]
+   MealAliments MealAliments[]
+   MealRecords     MealRecords[]
 
 }
 
@@ -192,6 +196,28 @@ model UserRestrictions {
 
 // MODEL USER_RESTRICTION - END
 
+
+// MODEL MEAL_RECORDS - START
+
+model MealRecords {
+  record_id           Int     @id @default(autoincrement())
+  user_id             Int
+  meal_id             Int
+  aliment_id          Int
+  amount              Decimal @db.Decimal(5,2)
+  unit                MeasurementUnit
+  meal_date           DateTime @db.Date 
+  meal_moment         DateTime @db.Time
+  created_at          DateTime @default(now())
+
+
+  user             Users    @relation(fields: [user_id], references: [user_id])
+  Meal             Meals  @relation(fields: [meal_id], references: [meal_id])
+  aliment          Aliments   @relation(fields: [aliment_id], references: [aliment_id])
+}
+
+// MODEL MEAL_RECORDS - END
+
 // MODEL MEAL_ALIMENTS - START
 
 model MealAliments {
@@ -209,3 +235,4 @@ model MealAliments {
 
   @@unique([meal_id, aliment_id])
 }
+

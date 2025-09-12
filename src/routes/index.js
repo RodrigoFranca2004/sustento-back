@@ -6,6 +6,7 @@ import userEvolutionRoutes from "./userEvolution.routes.js"
 import mealRoutes from "./meal.routes.js"
 import alimentRoutes from "./aliment.routes.js"
 import userRestrictionRoutes from "./userRestriction.routes.js"
+import mealRecordRoutes from "./mealRecord.routes.js"
 import mealAlimentRoutes from "./mealAliment.routes.js"
 import authRoutes from "./auth.routes.js"
 
@@ -18,6 +19,7 @@ router.use("/userEvolutions", userEvolutionRoutes);
 router.use("/meals", mealRoutes);
 router.use("/aliments", alimentRoutes);
 router.use("/userRestrictions", userRestrictionRoutes);
+router.use("/mealRecords", mealRecordRoutes);
 router.use("/mealAliments", mealAlimentRoutes);
 router.use("/auth", authRoutes);
 
