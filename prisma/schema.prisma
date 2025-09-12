@@ -166,7 +166,6 @@ model Aliments {
 
    @@unique([aliment_id, name])
 
-   MealRecords     MealRecords[]
    // foreign keys relations (exported)
    MealAliments MealAliments[]
    MealRecords     MealRecords[]
