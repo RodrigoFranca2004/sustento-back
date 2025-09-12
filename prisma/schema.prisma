@@ -18,8 +18,8 @@ model Users {
   gender Gender?
   weight Decimal? @db.Decimal(5,2) // kg up to 999.99
   height Decimal? @db.Decimal(5,2) // cm up to 999.99
-  objective Objective
-  activity_lvl ActivityLvl
+  objective Objective?
+  activity_lvl ActivityLvl?
   active_plan_id Int?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -28,6 +28,7 @@ model Users {
   MealRecords         MealRecords[]
   Evolutions          UserEvolutions[]
   UserRestrictions    UserRestrictions[]
+  PasswordResets       PasswordResets[]
 }
 
 enum Gender{
@@ -49,6 +50,18 @@ enum ActivityLvl {
 }
 
 // MODEL USER - END
+
+// MODEL PASSWORD_RESET - START
+
+model PasswordResets {
+  id Int @id @default(autoincrement())
+  token String @unique
+  expiresAt DateTime
+  
+  // foreign keys relations (imported)
+  user_id Int
+  user Users @relation(fields: [user_id], references: [user_id])
+}
 
 // MODEL MEALPLANS - START
 
@@ -126,6 +139,9 @@ model Meals {
   plan_id Int
   plan MealPlans @relation(fields: [plan_id], references: [plan_id])
 
+  // foreign keys relation (exported)
+  MealAliments MealAliments[]
+
   // index, it blocks the same plan_id and meal_name in a table
   @@unique([plan_id, meal_name])
 
@@ -151,12 +167,16 @@ model Aliments {
    @@unique([aliment_id, name])
 
    MealRecords     MealRecords[]
+   // foreign keys relations (exported)
+   MealAliments MealAliments[]
+   MealRecords     MealRecords[]
+
 }
 
 enum MeasurementUnit{
   KCAL    // calories
   G       // grams
-  ML      // mililiters
+  ML      // milliliters
   UN      // units
 }
 
@@ -175,6 +195,7 @@ model UserRestrictions {
 }
 
 // MODEL USER_RESTRICTION - END
+
 
 // MODEL MEAL_RECORDS - START
 
@@ -196,3 +217,22 @@ model MealRecords {
 }
 
 // MODEL MEAL_RECORDS - END
+
+// MODEL MEAL_ALIMENTS - START
+
+model MealAliments {
+  meal_aliment_id Int @id @default(autoincrement())
+  quantity Decimal @db.Decimal(6,2) // up to 9999.99
+  measurement_unit MeasurementUnit
+  order Int?
+
+  // foreign keys relations (imported)
+  meal_id Int
+  meal Meals @relation(fields: [meal_id], references: [meal_id])
+
+  aliment_id Int
+  aliment Aliments @relation(fields: [aliment_id], references: [aliment_id])
+
+  @@unique([meal_id, aliment_id])
+}
+
