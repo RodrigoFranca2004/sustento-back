@@ -9,6 +9,7 @@ import userRestrictionRoutes from "./userRestriction.routes.js"
 import mealRecordRoutes from "./mealRecord.routes.js"
 import mealAlimentRoutes from "./mealAliment.routes.js"
 import authRoutes from "./auth.routes.js"
+import fatSecretRoutes from "./fatSecret.routes.js"
 
 const router = Router()
 
@@ -22,5 +23,6 @@ router.use("/userRestrictions", userRestrictionRoutes);
 router.use("/mealRecords", mealRecordRoutes);
 router.use("/mealAliments", mealAlimentRoutes);
 router.use("/auth", authRoutes);
+router.use("/fatSecret", fatSecretRoutes);
 
 export default router
