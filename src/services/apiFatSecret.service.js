@@ -1,18 +1,18 @@
 import fetch from "node-fetch";
 
-const CLIENT_ID = process.env.FATSECRET_CLIENT_ID;
-const CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET;
+const FATSECRET_CLIENT_ID = process.env.FATSECRET_CLIENT_ID;
+const FATSECRET_CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET;
 
-const TOKEN_URL = "https://oauth.fatsecret.com/connect/token";
-const SEARCH_URL = "https://platform.fatsecret.com/rest/server.api";
+const FATSECRET_TOKEN_URL = process.env.FATSECRET_TOKEN_URL;
+const FATSECRET_SEARCH_URL = process.env.FATSECRET_SEARCH_URL;
 
 // Generates the access token
 async function getAccessToken() {
-  const credentials = `${CLIENT_ID}:${CLIENT_SECRET}`;
+  const credentials = `${FATSECRET_CLIENT_ID}:${FATSECRET_CLIENT_SECRET}`;
   // Encode usando Buffer nativo
   const b64Credentials = Buffer.from(credentials).toString("base64");
 
-  const response = await fetch(TOKEN_URL, {
+  const response = await fetch(FATSECRET_TOKEN_URL, {
     method: "POST",
     headers: {
       "Authorization": `Basic ${b64Credentials}`,
@@ -27,11 +27,12 @@ async function getAccessToken() {
   }
 
   const data = await response.json();
-  return data.access_token;
+  const accessToken = data.access_token
+  return accessToken;
 }
 
 // Search for the specified aliments
-export async function searchFood(query, maxResults = 5, pageNumber = 0) {
+export async function searchAliment(query, maxResults = 15, pageNumber = 0) {
   const token = await getAccessToken();
 
   const params = new URLSearchParams({
@@ -42,7 +43,7 @@ export async function searchFood(query, maxResults = 5, pageNumber = 0) {
     format: "json"
   });
 
-  const response = await fetch(`${SEARCH_URL}?${params.toString()}`, {
+  const response = await fetch(`${FATSECRET_SEARCH_URL}?${params.toString()}`, {
     headers: {
       "Authorization": `Bearer ${token}`,
       "Accept": "application/json"
