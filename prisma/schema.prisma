@@ -44,9 +44,10 @@ enum Objective{
 
 enum ActivityLvl {
   SEDENTARY
-  LIGHT
-  MODERATE
-  INTENSE
+  LIGHTLY_ACTIVE
+  MODERATELY_ACTIVE
+  ACTIVE
+  VERY_ACTIVE
 }
 
 // MODEL USER - END
