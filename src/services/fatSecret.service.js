@@ -15,10 +15,10 @@ async function getAccessToken() {
   const response = await fetch(FATSECRET_TOKEN_URL, {
     method: "POST",
     headers: {
-      "Authorization": `Basic ${b64Credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded"
+      Authorization: `Basic ${b64Credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({ grant_type: "client_credentials" })
+    body: new URLSearchParams({ grant_type: "client_credentials" }),
   });
 
   if (!response.ok) {
@@ -27,27 +27,43 @@ async function getAccessToken() {
   }
 
   const data = await response.json();
-  const accessToken = data.access_token
+  const accessToken = data.access_token;
   return accessToken;
 }
 
+function prepareParams({ maxResults, pageNumber }) {
+  const maxResultsInt = Number(maxResults) || 15;
+  const pageNumberInt = Number(pageNumber)|| 0;
+
+  return {maxResultsInt, pageNumberInt}
+}
+
 // Search for the specified aliments
-export async function searchAliment(query, maxResults = 15, pageNumber = 0) {
+export async function searchAliment({
+  query,
+  maxResults = 15,
+  pageNumber = 0,
+}) {
   const token = await getAccessToken();
+
+  const { maxResultsInt, pageNumberInt } = prepareParams({
+    maxResults,
+    pageNumber,
+  });
 
   const params = new URLSearchParams({
     method: "foods.search",
     search_expression: query,
-    max_results: maxResults,
-    page_number: pageNumber,
-    format: "json"
+    max_results: maxResultsInt,
+    page_number: pageNumberInt,
+    format: "json",
   });
 
   const response = await fetch(`${FATSECRET_SEARCH_URL}?${params.toString()}`, {
     headers: {
-      "Authorization": `Bearer ${token}`,
-      "Accept": "application/json"
-    }
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
   });
 
   if (!response.ok) {
