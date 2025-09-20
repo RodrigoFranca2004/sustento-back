@@ -1,6 +1,6 @@
 import { searchFood } from "../services/apiFatSecret.service.js";
 
-export async function searchFoodController(req, res, next) {
+export async function searchAliment(req, res) {
   try {
     const { query } = req.query;
     if (!query) {
@@ -10,6 +10,6 @@ export async function searchFoodController(req, res, next) {
     const results = await searchFood(query);
     return res.json(results);
   } catch (err) {
-    next(err); // send the error to a treatment middleware
+    res.status(400).json({error: err.message}) // send the error to a treatment middleware
   }
 }
