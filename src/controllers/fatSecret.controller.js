@@ -1,4 +1,4 @@
-import { searchFood } from "../services/apiFatSecret.service.js";
+import { searchAliment } from "../services/fatSecret.service.js";
 
 export async function searchAliment(req, res) {
   try {
@@ -7,7 +7,7 @@ export async function searchAliment(req, res) {
       return res.status(400).json({ error: "O parâmetro 'query' é obrigatório" });
     }
 
-    const results = await searchFood(query);
+    const results = await searchAliment(query);
     return res.json(results);
   } catch (err) {
     res.status(400).json({error: err.message}) // send the error to a treatment middleware
