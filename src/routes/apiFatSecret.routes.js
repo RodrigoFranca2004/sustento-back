@@ -1,8 +1,8 @@
 import express from "express";
-import { searchFoodController } from "../controllers/apiFatSecret.controller.js";
+import { searchAliment } from "../controllers/fatSecret.controller.js";
 
 const router = express.Router();
 
-router.get("/search", searchFoodController);
+router.get("/search", searchAliment);
 
 export default router;
