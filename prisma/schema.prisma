@@ -15,6 +15,7 @@ model Users {
   email String @unique
   hash_password String
   age Int?
+  bmi Decimal? @db.Decimal(5,2)
   gender Gender?
   weight Decimal? @db.Decimal(5,2) // kg up to 999.99
   height Decimal? @db.Decimal(5,2) // cm up to 999.99
