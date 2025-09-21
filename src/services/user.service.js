@@ -47,3 +47,30 @@ export async function deleteUser(id) {
     where: { user_id: Number(id) },
   });
 }
+
+export async function calculateBmi(weight, height) {
+  if (!weight || !height) {
+    throw new Error("Weight and height are required");
+  }
+
+  const heightInMeters = height / 100;
+  const bmi = weight / (heightInMeters * heightInMeters);
+
+  let category = "";
+
+  if (bmi < 18.5) {
+    category = "Underweight";
+  } else if (bmi < 25) {
+    category = "Normal weight";
+  } else if (bmi < 30) {
+    category = "Overweight";
+  } else {
+    category = "Obesity";
+  }
+
+  return {
+    bmi: Number(bmi.toFixed(2)),
+    category
+  };
+}
+
