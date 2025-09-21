@@ -35,6 +35,11 @@ export async function updateUser(id, data) {
   if (data.hash_password) {
     data.hash_password = await bcrypt.hash(data.hash_password, 10);
   }
+
+  if (data.weight || data.height) {
+    calculateBmi(id,data.weight,data.height,)
+  }
+
   return await prisma.users.update({
     where: { user_id: Number(id) },
     data,
@@ -48,10 +53,26 @@ export async function deleteUser(id) {
   });
 }
 
-export async function calculateBmi(weight, height) {
-  if (!weight || !height) {
-    throw new Error("Weight and height are required");
+async function calculateBmi(id, paramWeight, paramHeight) {
+  const hasParams = Boolean(paramHeight && paramWeight);
+
+  if (!hasParams) {
+    const user = await prisma.users.findUnique({
+      where: { user_id: Number(id) },
+      select: { weight: true, height: true }
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    if (!user.weight || !user.height) {
+      throw new Error("User is missing weight/height");
+    }
   }
+
+  const weight = paramWeight ?? user.weight;
+  const height = paramHeight ?? user.height;
 
   const heightInMeters = height / 100;
   const bmi = weight / (heightInMeters * heightInMeters);
