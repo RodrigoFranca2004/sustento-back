@@ -43,7 +43,7 @@ export async function login(email, password) {
         { expiresIn: "1h"}
     );
 
-    return token;
+    return {token, id: user.user_id};
 }
 
 export async function requestPasswordReset(email) {
