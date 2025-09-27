@@ -75,10 +75,11 @@ model MealPlans {
   target_protein  Decimal?
   target_carbs    Decimal?
   target_fat      Decimal?
-  source         Source
-  active         Boolean @default(false)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  source          Source
+  active          Boolean @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  target_water    Decimal?
 
   // foreign keys relations (imported)
   user_id        Int
@@ -86,7 +87,7 @@ model MealPlans {
 
   // foreign keys relations (exported)
   Meals           Meals[]
-WaterRecords      WaterRecords[]
+  WaterRecords      WaterRecords[]
 }
 
 enum Source {
@@ -124,7 +125,7 @@ model UserEvolutions {
   weight         Decimal? @db.Decimal(5,2) // kg up to 999.99
   bmi            Decimal? @db.Decimal(5,2)
   body_fat       Decimal? @db.Decimal(5,2) // kg up to 999.99
-  registered_at  DateTime @default(now())
+  created_at  DateTime @default(now())
 }
 
 // MODEL USER_EVOLUTIONS - END
@@ -214,7 +215,6 @@ model MealRecords {
   aliment_id          Int
   amount              Decimal @db.Decimal(5,2)
   unit                MeasurementUnit
-  water_consumption   Decimal @db.Decimal(4,2) // g up to 99.99
   meal_date           DateTime @db.Date 
   meal_moment         DateTime @db.Time
   created_at          DateTime @default(now())
@@ -251,10 +251,10 @@ model MealAliments {
 
 model WaterRecords {
   water_record_id     Int @id @default(autoincrement())
-  target_water        Decimal @db.Decimal(4,2) // up to 99.99
+  target_water        Decimal
   created_at          DateTime @default(now())
   water_record_date   DateTime @db.Date
-  water_consumption   Decimal @db.Decimal(4,2) // g up to 99.99
+  water_consumption   Decimal?
 
   // foreign keys relations (imported)
   plan_id Int
