@@ -7,9 +7,16 @@ export async function createMealPlan(data) {
     },
   });
 
-  const target_calories = await calculateCalories(mealPlan.plan_id);
+  const { target_calories, target_protein, target_fat, target_carbs } =
+    await calculateNutrients(mealPlan.plan_id);
 
-  mealPlan = await updateMealPlan(mealPlan.plan_id, { target_calories });
+  mealPlan = await updateMealPlan(mealPlan.plan_id, {
+    target_calories,
+    target_protein,
+    target_fat,
+    target_carbs,
+  });
+
   return mealPlan;
 }
 
@@ -36,7 +43,7 @@ export async function deleteMealPlan(id) {
   });
 }
 
-async function calculateCalories(mealPlanId) {
+async function calculateNutrients(mealPlanId) {
   const mealPlanRow = await getMealPlan(mealPlanId);
   const user_id = mealPlanRow.user_id;
   const userRow = await prisma.users.findUnique({
@@ -90,5 +97,24 @@ async function calculateCalories(mealPlanId) {
       throw new Error("Activity Level not informed");
   }
 
-  return target_calories;
+  target_calories = Math.floor(target_calories)
+
+  let target_protein = Math.floor((target_calories * 0.2) / 4);
+  let target_fat = Math.floor((target_calories * 0.3) / 9);
+  let target_carbs = Math.floor((target_calories * 0.5) / 4);
+
+  // Guarantees consistence between calories and nutrients subtracting the difference from carbs (worts scenario its 17kcal)
+  let total_calc = target_protein*4 + target_fat*9 + target_carbs*4;
+  let diff = Math.round(target_calories - total_calc)
+
+  target_carbs += diff
+
+  const target_nutrients = {
+    target_calories,
+    target_protein,
+    target_fat,
+    target_carbs,
+  };
+
+  return target_nutrients;
 }
