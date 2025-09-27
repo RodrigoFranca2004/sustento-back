@@ -19,6 +19,7 @@ model Users {
   gender Gender?
   weight Decimal? @db.Decimal(5,2) // kg up to 999.99
   height Decimal? @db.Decimal(5,2) // cm up to 999.99
+  body_fat       Decimal? @db.Decimal(5,2) // kg up to 999.99
   objective Objective?
   activity_lvl ActivityLvl?
   active_plan_id Int?
@@ -85,6 +86,7 @@ model MealPlans {
 
   // foreign keys relations (exported)
   Meals           Meals[]
+WaterRecords      WaterRecords[]
 }
 
 enum Source {
@@ -121,7 +123,6 @@ model UserEvolutions {
   user           Users    @relation(fields: [user_id], references: [user_id])
   weight         Decimal? @db.Decimal(5,2) // kg up to 999.99
   bmi            Decimal? @db.Decimal(5,2)
-  waist          Decimal? @db.Decimal(5,2) // cm up to 999.99
   body_fat       Decimal? @db.Decimal(5,2) // kg up to 999.99
   registered_at  DateTime @default(now())
 }
@@ -132,7 +133,8 @@ model UserEvolutions {
 
 model Meals {
   meal_id Int @id @default(autoincrement())
-  meal_name String 
+  meal_name String
+  meal_type MealType
   time DateTime?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -148,6 +150,11 @@ model Meals {
   @@unique([plan_id, meal_name])
 
   MealRecords     MealRecords[]
+}
+
+enum MealType {
+  FIXED
+  FREE
 }
 
 // MODEL MEALS - END
@@ -207,6 +214,7 @@ model MealRecords {
   aliment_id          Int
   amount              Decimal @db.Decimal(5,2)
   unit                MeasurementUnit
+  water_consumption   Decimal @db.Decimal(4,2) // g up to 99.99
   meal_date           DateTime @db.Date 
   meal_moment         DateTime @db.Time
   created_at          DateTime @default(now())
@@ -237,3 +245,20 @@ model MealAliments {
   @@unique([meal_id, aliment_id])
 }
 
+// MODEL MEAL_ALIMENTS - END
+
+// MODEL WATER_RECORDS - START
+
+model WaterRecords {
+  water_record_id     Int @id @default(autoincrement())
+  target_water        Decimal @db.Decimal(4,2) // up to 99.99
+  created_at          DateTime @default(now())
+  water_record_date   DateTime @db.Date
+  water_consumption   Decimal @db.Decimal(4,2) // g up to 99.99
+
+  // foreign keys relations (imported)
+  plan_id Int
+  plan MealPlans      @relation(fields: [plan_id], references: [plan_id])
+}
+
+// MODEL WATER_RECORDS - END
