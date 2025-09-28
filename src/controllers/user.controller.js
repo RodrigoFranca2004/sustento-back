@@ -29,3 +29,14 @@ export async function deleteUser(req, res) {
   }
 }
 
+export async function listMyEvolution(req, res) {
+  try {
+    const id = req.params.id
+    const {start, end} = req.body || {}
+    const evolutions = await UserService.listMyEvolution({id, start, end});
+    res.json(evolutions)
+  } catch (err) {
+    res.status(400).json({err: err.message});
+  }
+}
+
