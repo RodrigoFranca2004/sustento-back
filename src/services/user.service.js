@@ -72,7 +72,7 @@ export async function listMyEvolution({id, start, end}) {
   const evolutions = await prisma.userEvolutions.findMany({
     where: {
       user_id: Number(id),
-      registered_at: {
+      created_at: {
         gte: normalizedStart,
         lte: normalizedEnd,
       },
@@ -142,7 +142,7 @@ async function saveUserEvolution(id) {
       bmi,
       weight,
       body_fat,
-      registered_at: new Date(),
+      created_at: new Date(),
     },
   });
 }
