@@ -57,7 +57,7 @@ async function calculateNutrients(mealPlanId) {
     },
   });
 
-  const { gender, height, weight, age, activity_lvl, objective } = userRow;
+  const { gender, height, weight, age, activity_lvl } = userRow;
 
   if (!gender || !height || !weight || !age || !activity_lvl) {
     throw new Error("The user has not all required info");
