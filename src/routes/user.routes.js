@@ -5,6 +5,7 @@ import {
   updateUser,
   deleteUser,
   listMyEvolution,
+  listDayMeals,
 } from "../controllers/user.controller.js";
 
 const router = Router();
@@ -16,5 +17,6 @@ router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 
 router.get("/evolution/:id", listMyEvolution);
+router.get("/dayMeals/:id", listDayMeals);
 
 export default router;
