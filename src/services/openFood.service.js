@@ -1,97 +1,118 @@
 import fetch from "node-fetch";
 
-const OPENFOODFACTS_SEARCH_URL = "https://br.openfoodfacts.org/cgi/search.pl";
+const OPENFOODFACTS_SEARCH_URL = process.env.OPENFOODFACTS_SEARCH_URL;
 
-/**
- * NEW FUNCTION: Classifies a product based on ANVISA's frontal labeling rules.
- * @param {object} product - The raw product object to check its unit (g or ml).
- * @param {object} nutrients - The cleaned nutrients object (per 100g/ml).
- * @returns {string[]} - An array of warnings (e.g., ["ALTO EM GORDURA SATURADA"]).
- */
-
+// ... (a função getAnvisaWarnings permanece a mesma)
 function getAnvisaWarnings(product, nutrients) {
-  const warnings = [];
-
-  // Determine if the product is liquid or solid to apply the correct thresholds
-  const isLiquid = product.quantity?.toLowerCase().includes("ml") || product.quantity?.toLowerCase().includes("l");
-
-  // ANVISA's thresholds
-  const limits = {
-    solid: {
-      saturatedFat: 6,  // g per 100g
-      sodium: 600,      // mg per 100g
-      addedSugar: 15,   // g per 100g
-    },
-    liquid: {
-      saturatedFat: 3,  // g per 100ml
-      sodium: 300,      // mg per 100ml
-      addedSugar: 7.5,  // g per 100ml
-    },
-  };
-
-  const activeLimits = isLiquid ? limits.liquid : limits.solid;
-
-  // 1. Check Saturated Fat
-  if (nutrients.saturatedFat_100g >= activeLimits.saturatedFat) {
-    warnings.push("ALTO EM GORDURA SATURADA");
-  }
-
-  // 2. Check Sodium (API gives sodium in 'g', ANVISA rule is in 'mg', so convert)
-  const sodiumInMg = nutrients.sodium_100g * 1000;
-  if (sodiumInMg >= activeLimits.sodium) {
-    warnings.push("ALTO EM SÓDIO");
-  }
-
-  // 3. Check Added Sugar (using total sugars as a proxy)
-  if (nutrients.sugar_100g >= activeLimits.addedSugar) {
-    // The asterisk denotes this is based on total sugars, not added sugars.
-    warnings.push("ALTO EM AÇÚCAR ADICIONADO*");
-  }
-
-  return warnings;
+    const warnings = [];
+    const isLiquid = product.quantity?.toLowerCase().includes("ml") || product.quantity?.toLowerCase().includes("l");
+    const limits = {
+        solid: { saturatedFat: 6, sodium: 600, addedSugar: 15 },
+        liquid: { saturatedFat: 3, sodium: 300, addedSugar: 7.5 },
+    };
+    const activeLimits = isLiquid ? limits.liquid : limits.solid;
+    if (nutrients.saturatedFat_100g >= activeLimits.saturatedFat) {
+        warnings.push("ALTO EM GORDURA SATURADA");
+    }
+    const sodiumInMg = nutrients.sodium_100g * 1000;
+    if (sodiumInMg >= activeLimits.sodium) {
+        warnings.push("ALTO EM SÓDIO");
+    }
+    if (nutrients.sugar_100g >= activeLimits.addedSugar) {
+        warnings.push("ALTO EM AÇÚCAR ADICIONADO*");
+    }
+    return warnings;
 }
 
 /**
- * Extracts and cleans only the essential data from a full product object.
+ * Extracts, cleans, and translates essential data from a full product object.
  * @param {object} product - The raw product object from the API.
- * @returns {object|null} - A simplified product object.
+ * @returns {object|null} - A simplified, translated product object.
  */
+
 function transformProduct(product) {
-  if (!product || !product.code || !product.product_name) {
-    return null;
-  }
+    if (!product || !product.code || !product.product_name) {
+        return null;
+    }
 
-  const cleanedNutrients = {
-    calories_100g: product.nutriments?.["energy-kcal_100g"] ?? null,
-    proteins_100g: product.nutriments?.proteins_100g ?? null,
-    carbs_100g: product.nutriments?.carbohydrates_100g ?? null,
-    fat_100g: product.nutriments?.fat_100g ?? null,
-    fiber_100g: product.nutriments?.fiber_100g ?? null,
-    sugar_100g: product.nutriments?.sugars_100g ?? null,
-    saturatedFat_100g: product.nutriments?.["saturated-fat_100g"] ?? null,
-    sodium_100g: product.nutriments?.sodium_100g ?? null,
-  };
+    const translationMap = {
+        'vegan': 'Vegano', 'non-vegan': 'Não Vegano', 'vegetarian': 'Vegetariano',
+        'non-vegetarian': 'Não Vegetariano', 'unknown': 'Desconhecido', 'gluten-free': 'Sem Glúten',
+        'gluten': 'Glúten', 'milk': 'Leite', 'eggs': 'Ovos', 'nuts': 'Frutos de Casca Rija',
+        'peanuts': 'Amendoim', 'soybeans': 'Soja', 'fish': 'Peixe', 'crustaceans': 'Crustáceos',
+        'molluscs': 'Moluscos', 'mustard': 'Mostarda', 'sesame-seeds': 'Sementes de Gergelim',
+        'celery': 'Aipo', 'lupin': 'Tremoço', 'sulphur-dioxide-and-sulphites': 'Dióxido de Enxofre e Sulfitos',
+    };
 
-  // NEW: Call the ANVISA classification function
-  const anvisaWarnings = getAnvisaWarnings(product, cleanedNutrients);
+    const getDietaryStatus = (type) => {
+        const certifiedLabel = `en:${type}`;
+        if (product.labels_tags?.includes(certifiedLabel)) {
+            return { status: type, source: 'certificado' };
+        }
+        const analysisLabel = `en:${type}`;
+        const nonAnalysisLabel = `en:non-${type}`;
+        if (product.ingredients_analysis_tags?.includes(analysisLabel)) {
+            return { status: type, source: 'análise' };
+        }
+        if (product.ingredients_analysis_tags?.includes(nonAnalysisLabel)) {
+            return { status: `non-${type}`, source: 'análise' };
+        }
+        return { status: 'unknown', source: null };
+    };
+    
+    const translateTags = (tags = []) => tags
+        .map(tag => tag.replace("en:", ""))
+        .map(cleanedTag => translationMap[cleanedTag] || cleanedTag);
 
-  return {
-    id: product.code,
-    name: product.product_name_pt ?? product.product_name,
-    brand: product.brands ?? "N/A",
-    imageUrl: product.image_url,
-    quantity: product.quantity,
-    servingSize: product.serving_size,
-    nutrients: cleanedNutrients,
-    ingredients: product.ingredients_text_pt ?? null,
-    nutriScore: product.nutriscore_grade.toUpperCase() ?? "N/A",
-    novaGroup: product.nova_group ?? "N/A",
-    // NEW FIELD: Add the warnings to the final object
-    anvisaWarnings: anvisaWarnings,
-  };
+    const getGlutenStatus = () => {
+        if (product.labels_tags?.includes('en:gluten-free')) return 'Sem Glúten';
+        if (product.allergens_hierarchy?.includes('en:gluten')) return 'Contém Glúten';
+        if (product.traces_hierarchy?.includes('en:gluten')) return 'Pode Conter Glúten';
+        return 'Não Informado';
+    };
+
+    const cleanedNutrients = {
+        calories_100g: product.nutriments?.["energy-kcal_100g"] ?? null,
+        proteins_100g: product.nutriments?.proteins_100g ?? null,
+        carbs_100g: product.nutriments?.carbohydrates_100g ?? null,
+        fat_100g: product.nutriments?.fat_100g ?? null,
+        fiber_100g: product.nutriments?.fiber_100g ?? null,
+        sugar_100g: product.nutriments?.sugars_100g ?? null,
+        saturatedFat_100g: product.nutriments?.["saturated-fat_100g"] ?? null,
+        sodium_100g: product.nutriments?.sodium_100g ?? null,
+    };
+
+    const anvisaWarnings = getAnvisaWarnings(product, cleanedNutrients);
+    
+    const veganInfo = getDietaryStatus('vegan');
+    const vegetarianInfo = getDietaryStatus('vegetarian');
+
+    return {
+        id: product.code,
+        name: product.product_name_pt ?? product.product_name,
+        brand: product.brands ?? "N/A",
+        imageUrl: product.image_url,
+        quantity: product.quantity,
+        nutrients: cleanedNutrients, // Agora este objeto terá os dados corretos
+        ingredients: product.ingredients_text_pt ?? null,
+        nutriScore: product.nutriscore_grade.toUpperCase() ?? "N/A",
+        novaGroup: product.nova_group ?? "N/A",
+        anvisaWarnings: anvisaWarnings,
+        dietaryInfo: {
+            vegan: {
+                status: translationMap[veganInfo.status],
+                fonte: veganInfo.source ? (veganInfo.source === 'certificado' ? 'Certificado' : 'Análise') : null
+            },
+            vegetarian: {
+                status: translationMap[vegetarianInfo.status],
+                fonte: vegetarianInfo.source ? (vegetarianInfo.source === 'certificado' ? 'Certificado' : 'Análise') : null
+            },
+            statusGluten: getGlutenStatus(),
+            alergenos: translateTags(product.allergens_hierarchy),
+            tracos: translateTags(product.traces_hierarchy),
+        }
+    };
 }
-
-// ... (prepareParams and searchAliment functions remain the same as the previous version)
 
 function prepareParams({ maxResults, pageNumber }) {
     const pageSize = Number(maxResults) || 20;
