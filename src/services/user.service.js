@@ -82,6 +82,43 @@ export async function listMyEvolution({id, start, end}) {
   return evolutions;
 }
 
+export async function listDayMeals({ id, date }) {
+
+  if (!id) {
+    return null;
+  }
+
+  if (!date) {
+    throw new Error("Date parameter is mandatory");
+  }
+
+  const startDate = startOfDay(date);
+  const endDate = endOfDay(date);
+
+  const meals = await prisma.mealRecords.findMany({
+    where: {
+      user_id: Number(id),
+      meal_date: {
+        gte: startDate,   // gte = Greater Than or Equal
+        lte: endDate,     // lte = Less Than or Equal
+      },
+    },
+    include: {
+      Meal: {
+        select: {
+          name: true,
+        }
+      },
+      aliment: true,
+    },
+    orderBy: {
+      meal_moment: 'asc', // Order by ascending time
+    }
+  })
+
+  return meals;
+}
+
 async function calculateBmi(id, paramWeight, paramHeight) {
   const hasParams = Boolean(paramHeight && paramWeight);
 
