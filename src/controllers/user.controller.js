@@ -40,3 +40,20 @@ export async function listMyEvolution(req, res) {
   }
 }
 
+export async function listDayMeals(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { date } = req.query;
+    const dateToUse = date || new Date();
+
+    const dayMeals = await UserService.listDayMeals({ 
+      userId: id, 
+      date: dateToUse 
+    });
+
+    res.json(dayMeals)
+  } catch (err) {
+    res.status(400).json({err: err.message});
+  }
+}
