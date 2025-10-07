@@ -10,6 +10,7 @@ import mealRecordRoutes from "./mealRecord.routes.js"
 import mealAlimentRoutes from "./mealAliment.routes.js"
 import authRoutes from "./auth.routes.js"
 import fatSecretRoutes from "./fatSecret.routes.js"
+import openFoodRoutes from "./openFood.routes.js"
 
 const router = Router()
 
@@ -24,5 +25,6 @@ router.use("/mealRecords", mealRecordRoutes);
 router.use("/mealAliments", mealAlimentRoutes);
 router.use("/auth", authRoutes);
 router.use("/fatSecret", fatSecretRoutes);
+router.use("/openFood", openFoodRoutes);
 
 export default router
