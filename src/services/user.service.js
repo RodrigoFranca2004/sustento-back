@@ -104,6 +104,16 @@ export async function listMyEvolution({id, start, end}) {
   return evolutions;
 }
 
+export async function listMyMealPlans({id}){
+  const mealPlans = await prisma.mealPlans.findMany({
+    where: {
+      user_id: Number(id)
+    }
+  })
+
+  return mealPlans || [];
+}
+
 async function calculateBmi(id, paramWeight, paramHeight) {
   const hasParams = Boolean(paramHeight && paramWeight);
 

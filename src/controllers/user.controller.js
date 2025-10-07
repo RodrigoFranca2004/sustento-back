@@ -40,3 +40,13 @@ export async function listMyEvolution(req, res) {
   }
 }
 
+export async function listMyMealPlans(req, res) {
+  try {
+    const id = req.params.id
+    const mealPlans = await UserService.listMyMealPlans({id});
+    res.json(mealPlans)
+  } catch (err) {
+    res.status(400).json({err: err.message})
+  }
+}
+
