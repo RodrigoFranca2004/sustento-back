@@ -5,6 +5,7 @@ import {
   updateUser,
   deleteUser,
   listMyEvolution,
+  listDayMeals,
   listMyMealPlans
 } from "../controllers/user.controller.js";
 
@@ -18,6 +19,7 @@ router.delete("/:id", deleteUser);
 
 // get data from other tables associated with user
 router.get("/evolution/:id", listMyEvolution);
+router.get("/dayMeals/:id", listDayMeals);
 router.get("/mealPlans/:id", listMyMealPlans);
 
 export default router;

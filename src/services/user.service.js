@@ -104,6 +104,41 @@ export async function listMyEvolution({id, start, end}) {
   return evolutions;
 }
 
+export async function listDayMeals({ userId, date }) {
+
+  if (!userId) { 
+    throw new Error("User ID is mandatory");
+  }
+
+  if (!date) {
+    throw new Error("Date parameter is mandatory");
+  }
+
+  const startDate = startOfDay(date);
+  const endDate = endOfDay(date);
+
+  const meals = await prisma.mealRecords.findMany({
+    where: {
+      user_id: Number(userId),
+      meal_date: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    include: {
+      Meal: {
+        select: {
+          meal_name: true,
+        }
+      },
+      aliment: true,
+    },
+    orderBy: {
+      meal_moment: 'asc',
+    }
+  });
+
+  return meals;
 export async function listMyMealPlans({id}){
   const mealPlans = await prisma.mealPlans.findMany({
     where: {

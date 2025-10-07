@@ -164,11 +164,11 @@ enum MealType {
 
 model Aliments {
   aliment_id       Int      @id @default(autoincrement())
-  barCode          String
+  barCode          String?
   name             String
   brand            String?
   imageUrl         String?
-  quantity         String
+  quantity         String?
 
   calories_100g    Decimal? @db.Decimal(8, 2)
   protein_100g     Decimal? @db.Decimal(8, 2)
