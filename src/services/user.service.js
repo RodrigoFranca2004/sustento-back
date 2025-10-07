@@ -27,10 +27,32 @@ export async function listUsers() {
 }
 
 export async function getUser(id) {
-  return await prisma.users.findUnique({
+  let user = await prisma.users.findUnique({
     where: { user_id: Number(id) },
     select: SELECT_USER_WITHOUT_PASSWORD,
   });
+
+  const userRestrictions = await prisma.userRestrictions.findMany({
+    where: {user_id: Number(id)},
+    select: { restriction_id: true }
+  })
+
+  const restrictionIds = userRestrictions.map(ur => ur.restriction_id);
+  const restrictions = await prisma.restrictions.findMany({
+      where: {
+        restriction_id: {
+          in: restrictionIds, 
+        },
+      },
+    });
+
+  const restrictionNames = restrictions.map(r => r.restriction_name);
+
+  user = {
+    ...user,
+    restrictions: restrictionNames
+  }
+  return user
 }
 
 export async function updateUser(id, data) {
