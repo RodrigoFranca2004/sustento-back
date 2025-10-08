@@ -139,6 +139,8 @@ export async function listDayMeals({ userId, date }) {
   });
 
   return meals;
+}
+
 export async function listMyMealPlans({id}){
   const mealPlans = await prisma.mealPlans.findMany({
     where: {
