@@ -57,6 +57,7 @@ export async function listDayMeals(req, res) {
     res.status(400).json({err: err.message});
   }
 }
+
 export async function listMyMealPlans(req, res) {
   try {
     const id = req.params.id
