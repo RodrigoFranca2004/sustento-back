@@ -30,3 +30,16 @@ export async function deleteAliment(id) {
     where: { aliment_id: Number(id) },
   });
 }
+
+export async function searchDbAliments(query) {
+  if (!query) {
+    return await listAliments();
+  }
+  return await prisma.aliments.findMany({
+    where: {
+      name: {
+        contains: query,
+      },
+    },
+  });
+}

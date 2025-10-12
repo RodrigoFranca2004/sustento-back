@@ -1,4 +1,5 @@
 import * as AlimentService from "../services/aliment.service.js"
+import * as CombinedAlimentService from "../services/combinedAliment.service.js"
 
 export async function createAliment(req, res) {
   try {
@@ -35,6 +36,35 @@ export async function deleteAliment(req, res) {
     res.status(204).send()
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+}
+
+export async function searchDbAliments(req, res) {
+  try {
+    const {query} = req.query
+    const aliments = await AlimentService.searchDbAliments(query)
+    res.json(aliments)
+  } catch (err) {
+    res.status(400).json({error: err.message})
+  }
+}
+
+export async function searchCombinedAliments(req, res) {
+  try {
+    // Extrai todos os parâmetros de busca de req.query
+    const { query, maxResults, pageNumber } = req.query;
+
+    const results = await CombinedAlimentService.searchCombined({ 
+      query, 
+      maxResults, 
+      pageNumber 
+    });
+
+    res.status(200).json(results);
+  } catch (err) {
+    // Adicionado um log do erro no servidor para facilitar a depuração
+    console.error("Error in searchCombinedAliments controller:", err);
+    res.status(500).json({ error: "An internal error occurred during the search." });
   }
 }
 

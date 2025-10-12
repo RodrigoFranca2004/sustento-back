@@ -45,7 +45,7 @@ async function importTaco() {
           carbs_100g: row.getCell(9).value,
           fiber_100g: row.getCell(10).value,
           sodium_100g: row.getCell(18).value,
-          nova_group: row.getCell(30).value, 
+          nova_group: row.getCell(30).value,
           anvisa_warnings: row.getCell(31).value,
           vegan_status: row.getCell(32).value,
           vegetarian_status: row.getCell(33).value,
@@ -82,25 +82,46 @@ async function importTaco() {
         const alimentToInsert = {
           aliment_id: toNumberOrNull(rowData.id),
           name: String(rowData.name),
-          brand: rowData.brand ? String(rowData.brand) : null,
-          anvisa_warnings: rowData.anvisa_warnings ? String(rowData.anvisa_warnings) : null,
-          vegan_status: rowData.vegan_status ? String(rowData.vegan_status) : null,
-          vegetarian_status: rowData.vegetarian_status ? String(rowData.vegetarian_status) : null,
-          allergens: rowData.allergens ? String(rowData.allergens) : null,
-          nutri_score: rowData.nutri_score ? String(rowData.nutri_score) : null,
-          traces: rowData.traces ? String(rowData.traces) : null,
+          brand: rowData.brand ? String(rowData.brand) : "Genérico",
+          nutri_score: rowData.nutri_score
+            ? String(rowData.nutri_score)
+            : "N/A",
+
+          dietary_info: {
+            vegan: {
+              status: rowData.vegan_status || "Desconhecido",
+              fonte: "Tabela TACO", // Fonte estática para dados importados
+            },
+            vegetarian: {
+              status: rowData.vegetarian_status || "Desconhecido",
+              fonte: "Tabela TACO",
+            },
+            // Assumindo que a Tabela TACO não informa sobre glúten
+            statusGluten: "Não Informado",
+            // Transforma strings separadas por vírgula em um array
+            allergens: rowData.allergens
+              ? String(rowData.allergens)
+                  .split(",")
+                  .map((s) => s.trim())
+              : [],
+            traces: rowData.traces
+              ? String(rowData.traces)
+                  .split(",")
+                  .map((s) => s.trim())
+              : [],
+          },
+          anvisa_warnings: rowData.anvisa_warnings ? String(rowData.anvisa_warnings).split(',').map(s => s.trim()) : [],
 
           // Valores numéricos
           nova_group: toNumberOrNull(rowData.nova_group),
-          calories_100g: toNumberOrNull(rowData.calories_100g)?.toFixed(2),
-          protein_100g: toNumberOrNull(rowData.protein_100g)?.toFixed(2),
-          fat_100g: toNumberOrNull(rowData.fat_100g)?.toFixed(2),
-          carbs_100g: toNumberOrNull(rowData.carbs_100g)?.toFixed(2),
-          fiber_100g: toNumberOrNull(rowData.fiber_100g)?.toFixed(2),
-          sodium_100g: toNumberOrNull(rowData.sodium_100g)?.toFixed(2),
+          calories_100g: toNumberOrNull(rowData.calories_100g),
+          protein_100g: toNumberOrNull(rowData.protein_100g),
+          fat_100g: toNumberOrNull(rowData.fat_100g),
+          carbs_100g: toNumberOrNull(rowData.carbs_100g),
+          fiber_100g: toNumberOrNull(rowData.fiber_100g),
+          sodium_100g: toNumberOrNull(rowData.sodium_100g),
 
           // Campos que não estão no Excel (defininir valor padrão)
-          dietary_info: null,
           saturated_fat_100g: null,
           sugar_100g: null,
           ingredients: null,

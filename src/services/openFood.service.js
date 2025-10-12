@@ -91,14 +91,14 @@ function transformProduct(product) {
         id: product.code,
         name: product.product_name_pt ?? product.product_name,
         brand: product.brands ?? "N/A",
-        imageUrl: product.image_url,
+        image_url: product.image_url,
         quantity: product.quantity,
         nutrients: cleanedNutrients, // Agora este objeto terá os dados corretos
         ingredients: product.ingredients_text_pt ?? null,
-        nutriScore: product.nutriscore_grade.toUpperCase() ?? "N/A",
-        novaGroup: product.nova_group ?? "N/A",
-        anvisaWarnings: anvisaWarnings,
-        dietaryInfo: {
+        nutri_score: product.nutriscore_grade.toUpperCase() ?? "N/A",
+        nova_group: product.nova_group ?? "N/A",
+        anvisa_warnings: anvisaWarnings,
+        dietary_info: {
             vegan: {
                 status: translationMap[veganInfo.status],
                 fonte: veganInfo.source ? (veganInfo.source === 'certificado' ? 'Certificado' : 'Análise') : null
@@ -107,9 +107,9 @@ function transformProduct(product) {
                 status: translationMap[vegetarianInfo.status],
                 fonte: vegetarianInfo.source ? (vegetarianInfo.source === 'certificado' ? 'Certificado' : 'Análise') : null
             },
-            statusGluten: getGlutenStatus(),
-            alergenos: translateTags(product.allergens_hierarchy),
-            tracos: translateTags(product.traces_hierarchy),
+            status_gluten: getGlutenStatus(),
+            allergens: translateTags(product.allergens_hierarchy),
+            traces: translateTags(product.traces_hierarchy),
         }
     };
 }

@@ -183,12 +183,8 @@ model Aliments {
   nutri_score      String?
   nova_group       Int? 
 
-  anvisa_warnings   String?
-  allergens         String? 
-  traces            String?
+  anvisa_warnings   Json?
   dietary_info      Json?
-  vegan_status      String?
-  vegetarian_status String?
 
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
@@ -198,7 +194,6 @@ model Aliments {
    // foreign keys relations (exported)
    MealAliments MealAliments[]
    MealRecords     MealRecords[]
-
 }
 
 enum MeasurementUnit{
