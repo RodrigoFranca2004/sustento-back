@@ -164,29 +164,31 @@ enum MealType {
 
 model Aliments {
   aliment_id       Int      @id @default(autoincrement())
-  barCode          String?
+  bar_code         String?
   name             String
   brand            String?
-  imageUrl         String?
+  image_url        String? 
   quantity         String?
 
-  calories_100g    Decimal? @db.Decimal(8, 2)
-  protein_100g     Decimal? @db.Decimal(8, 2)
-  carbs_100g       Decimal? @db.Decimal(8, 2)
-  fat_100g         Decimal? @db.Decimal(8, 2)
-  saturatedFat_100g Decimal? @db.Decimal(8, 2)
-  fiber_100g       Decimal? @db.Decimal(8, 2)
-  sugar_100g       Decimal? @db.Decimal(8, 2)
-  sodium_100g      Decimal? @db.Decimal(8, 2)
+  calories_100g      Decimal? @db.Decimal(8, 2)
+  protein_100g       Decimal? @db.Decimal(8, 2)
+  carbs_100g         Decimal? @db.Decimal(8, 2)
+  fat_100g           Decimal? @db.Decimal(8, 2)
+  saturated_fat_100g Decimal? @db.Decimal(8, 2)
+  fiber_100g         Decimal? @db.Decimal(8, 2)
+  sugar_100g         Decimal? @db.Decimal(8, 2)
+  sodium_100g        Decimal? @db.Decimal(8, 2)
 
   ingredients      String?  @db.Text
-  nutriScore       String?
-  novaGroup        Int?
+  nutri_score      String?
+  nova_group       Int? 
 
-  anvisaWarnings   String?
-  alergenos        String?
-  tracos           String? 
-  dietaryInfo      Json?
+  anvisa_warnings   String?
+  allergens         String? 
+  traces            String?
+  dietary_info      Json?
+  vegan_status      String?
+  vegetarian_status String?
 
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
@@ -239,7 +241,7 @@ model MealRecords {
 
   user             Users    @relation(fields: [user_id], references: [user_id])
   Meal             Meals  @relation(fields: [meal_id], references: [meal_id])
-  aliment          Aliments   @relation(fields: [aliment_id], references: [aliment_id])
+  aliment          Aliments   @relation(fields: [aliment_id], references: [aliment_id], onDelete: Cascade)
 }
 
 // MODEL MEAL_RECORDS - END
@@ -257,7 +259,7 @@ model MealAliments {
   meal Meals @relation(fields: [meal_id], references: [meal_id])
 
   aliment_id Int
-  aliment Aliments @relation(fields: [aliment_id], references: [aliment_id])
+  aliment Aliments @relation(fields: [aliment_id], references: [aliment_id], onDelete: Cascade)
 
   @@unique([meal_id, aliment_id])
 }
