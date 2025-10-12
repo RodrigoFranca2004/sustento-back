@@ -184,8 +184,6 @@ model Aliments {
   nova_group       Int? 
 
   anvisa_warnings   Json?
-  allergens         String? 
-  traces            String?
   dietary_info      Json?
 
   created_at          DateTime @default(now())
