@@ -13,6 +13,7 @@ model Users {
   user_id    Int    @id @default(autoincrement())
   name  String
   email String @unique
+  profile_picture_url String?
   hash_password String
   age Int?
   bmi Decimal? @db.Decimal(5,2)
