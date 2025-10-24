@@ -68,3 +68,20 @@ export async function listMyMealPlans(req, res) {
   }
 }
 
+export async function updateUserProfilePicture(req, res) {
+    try {
+        const userId = req.user.userId;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({ error: "Nenhum ficheiro de imagem enviado." });
+        }
+
+        const updatedUser = await UserService.updateProfilePicture(userId, file);
+
+        res.json(updatedUser);
+    } catch (err) {
+        console.error("Erro no upload da foto de perfil:", err); // Log do erro no servidor
+        res.status(500).json({ error: err.message || "Falha ao fazer upload da imagem." });
+    }
+}
