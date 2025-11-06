@@ -11,6 +11,7 @@ import mealAlimentRoutes from "./mealAliment.routes.js"
 import authRoutes from "./auth.routes.js"
 import fatSecretRoutes from "./fatSecret.routes.js"
 import openFoodRoutes from "./openFood.routes.js"
+import openAiRoutes from "./openai.routes.js"
 
 const router = Router()
 
@@ -26,5 +27,6 @@ router.use("/mealAliments", mealAlimentRoutes);
 router.use("/auth", authRoutes);
 router.use("/fatSecret", fatSecretRoutes);
 router.use("/openFood", openFoodRoutes);
+router.use("/openai", openAiRoutes);
 
 export default router
