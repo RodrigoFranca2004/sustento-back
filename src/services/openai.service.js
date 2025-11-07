@@ -29,17 +29,17 @@ export async function generateDietSuggestion(userData) {
       **STRICT OUTPUT PROTOCOL:**
       1.  **Structure:** The output MUST contain four keys ('breakfast', 'lunch', 'dinner', 'snacks'). Each of these keys MUST contain an **OBJECT**.
       2.  **Item Keys:** The nested object (e.g., 'breakfast') MUST use sequential keys starting from 'item1' (e.g., 'item1', 'item2', 'item3', etc.).
-      3.  **Item Value:** The value of each 'itemN' key MUST be an object with exactly two keys: "name" (string) and "quantity" (string).
-      4.  **Quantity Format (CRITICAL):** The "quantity" value MUST include both the estimated amount and the unit. You MUST use **ONLY** one of the following units: **g, kg, ml, L, or unid** (for unit/slice/piece). You MUST NOT use ambiguous units like "slices", "colher" (spoon), "fatias", etc.
-          * **Example of Conversion:** "2 slices" MUST be converted to "2 unid".
+      3.  **Item Value (CRITICAL CHANGE):** The value of each 'itemN' key MUST be an object with exactly three keys: **"name"** (string), **"quantity"** (number), and **"measurement_unit"** (string).
+      4.  **Unit Format (CRITICAL):** The "measurement_unit" value MUST be ONLY one of the following: **g, kg, ml, L, or unid** (for unit/slice/piece). The "quantity" MUST be a numerical value.
+          * **Example of Conversion:** "2 slices" MUST be converted to {"quantity": 2, "measurement_unit": "unid"}.
       5.  **Food Source:** You MUST only use ingredients and meals listed in the 'AVAILABLE FOODS' section.
       6.  **Total Calories:** You MUST NOT include the "totalCalories" key.
 
       The required JSON format is:
       {
         "breakfast": {
-          "item1": { "name": "Food 1 Name", "quantity": "Qty Unit" },
-          "item2": { "name": "Food 2 Name", "quantity": "Qty Unit" }
+          "item1": { "name": "Food 1 Name", "quantity": 100, "measurement_unit": "g" },
+          "item2": { "name": "Food 2 Name", "quantity": 200, "measurement_unit": "ml" }
         },
         "lunch": { ... },
         "dinner": { ... },
@@ -59,7 +59,7 @@ export async function generateDietSuggestion(userData) {
       AVAILABLE FOODS:
       [${availableFoodsString}] 
 
-      **IMMEDIATE ACTION REQUIRED:** You MUST strictly adhere to the **STRICT OUTPUT PROTOCOL** defined in the system message.
+      **IMMEDIATE ACTION REQUIRED:** You MUST strictly adhere to the **STRICT OUTPUT PROTOCOL** defined in the system message, ensuring the **quantity** is a number and **measurement_unit** is a string, and avoiding the "totalCalories" key.
 
       Output a structured JSON with:
       {
@@ -69,7 +69,7 @@ export async function generateDietSuggestion(userData) {
         "snacks": { ... },
       }
       Return to me just the JSON, without any other info or it will break my code. Use the specified **JSON** format.
-  `;
+    `;
 
   try {
     const completion = await openai.chat.completions.create({
