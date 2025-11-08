@@ -1,4 +1,7 @@
 import { prisma } from "../config/prisma.js";
+import * as aiService from "../services/openai.service.js";
+import { createMeal } from "./meal.service.js";
+import { createMealAliment } from "./mealAliment.service.js"
 
 export async function createMealPlan(data) {
   let mealPlan = await prisma.mealPlans.create({
@@ -18,6 +21,81 @@ export async function createMealPlan(data) {
   });
 
   return mealPlan;
+}
+
+export async function suggestMealPlan(data) {
+  const userMeasurements = await prisma.users.findUnique({
+    where: { user_id: Number(data.user_id) },
+    select: {
+      name: true,
+      weight: true,
+      height: true,
+      objective: true,
+      activity_lvl: true,
+    },
+  });
+
+  if (!userMeasurements) {
+    throw new Error(`User with ID ${id} not found.`);
+  }
+
+  const suggestedMeals = await aiService.generateDietSuggestion(userMeasurements);
+
+  let mealPlanId = data.meal_plan_id ? data.meal_plan_id: null;
+
+  if (!data.meal_plan_id) {
+    let selfCreatedMealPlan = await createMealPlan({
+      plan_name: data.plan_name ? data.plan_name: "selfCreated",
+      source: "AUTOMATIC",
+      user_id: data.user_id
+    });
+
+    mealPlanId = selfCreatedMealPlan.plan_id;
+
+    for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) {
+    const selfCreatedMeal = await createMeal({
+      meal_name: mealName,
+      meal_type: "FIXED",
+      plan_id: Number(mealPlanId),
+    });
+
+    for (const [_, alimentData] of Object.entries(mealAliments)) {
+      const alimentRecord = await prisma.aliments.findFirst({
+        where: { name: alimentData.name },
+        select: { aliment_id: true },
+      })
+
+      if (!alimentRecord) {
+        continue;
+      }
+
+      await createMealAliment({
+        quantity: alimentData.quantity,
+        measurement_unit: alimentData.measurement_unit.toUpperCase(),
+        meal_id: selfCreatedMeal.meal_id,
+        aliment_id: alimentRecord.aliment_id,
+      })
+    }
+  }
+  }
+
+  let fullMealPlanInfo = await prisma.mealPlans.findUnique({
+    where: { plan_id: Number(mealPlanId) },
+    include: {
+      Meals: {
+        include: {
+          MealAliments: {
+            include: {
+              aliment: true,
+            },
+          },
+        },
+      },
+      user: true
+    },
+  });
+
+  return fullMealPlanInfo;
 }
 
 export async function listMealPlans() {
