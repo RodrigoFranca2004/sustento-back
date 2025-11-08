@@ -1,5 +1,6 @@
 import * as alimentDbService from './aliment.service.js';
 import * as openFoodService from './openFood.service.js';
+import { prisma } from "../config/prisma.js";
 
 
 /**
@@ -89,4 +90,23 @@ export async function searchCombined({ query, maxResults = 20, pageNumber = 1 })
     source: 'combined_search',
     products: combinedProducts.slice(0, maxResults), // Garante o limite final
   };
+}
+
+export async function getFoodMacros(foodName) {
+    const record = await prisma.aliments.findFirst({
+        where: { name: foodName },
+        select: { 
+            calories_100g: true,
+            protein_100g: true,
+            carbs_100g: true,
+            fat_100g: true,
+        }
+    });
+
+    return record ? {
+        calories: Number(record.calories_100g),
+        protein: Number(record.protein_100g),
+        carbs: Number(record.carbs_100g),
+        fat: Number(record.fat_100g),
+    } : null;
 }
