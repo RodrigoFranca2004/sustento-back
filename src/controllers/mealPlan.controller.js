@@ -9,6 +9,15 @@ export async function createMealPlan(req, res) {
   }
 }
 
+export async function suggestMealPlan(req, res) {
+  try {
+    const suggestedMealPlan = await MealPlanService.suggestMealPlan(req.body);
+    res.status(201).json(suggestedMealPlan);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
 export async function listMealPlans(req, res) {
   const mealPlans = await MealPlanService.listMealPlans();
   res.json(mealPlans);
