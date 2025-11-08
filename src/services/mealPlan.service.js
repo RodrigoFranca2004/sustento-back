@@ -11,7 +11,7 @@ export async function createMealPlan(data) {
   });
 
   const { target_calories, target_protein, target_fat, target_carbs } =
-    await calculateNutrients(mealPlan.plan_id);
+    await calculateTargetNutrients(mealPlan.plan_id);
 
   mealPlan = await updateMealPlan(mealPlan.plan_id, {
     target_calories,
@@ -121,7 +121,7 @@ export async function deleteMealPlan(id) {
   });
 }
 
-async function calculateNutrients(mealPlanId) {
+async function calculateTargetNutrients(mealPlanId) {
   const mealPlanRow = await getMealPlan(mealPlanId);
   const user_id = mealPlanRow.user_id;
   const userRow = await prisma.users.findUnique({
