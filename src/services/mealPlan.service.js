@@ -80,9 +80,8 @@ export async function suggestMealPlan(data) {
   } else {
     const presetMealPlan = getMealPlan(data.meal_plan_id);
 
-    return calculatePlanTotals(data.meal_plan_id);
   }
-
+  
   let fullMealPlanInfo = await prisma.mealPlans.findUnique({
     where: { plan_id: Number(mealPlanId) },
     include: {
@@ -99,7 +98,13 @@ export async function suggestMealPlan(data) {
     },
   });
 
-  return fullMealPlanInfo;
+  const planDetails = await calculatePlanTotals(mealPlanId);
+
+  return {
+    planDetails: planDetails,
+    totals: fullMealPlanInfo
+  };
+
 }
 
 export async function listMealPlans() {
@@ -201,7 +206,7 @@ async function calculateTargetNutrients(mealPlanId) {
   return target_nutrients;
 }
 
-function convertToGrams(quantity, unit) {
+export function convertToGrams(quantity, unit) {
     const qty = Number(quantity);
     if (isNaN(qty)) return 0;
     
@@ -211,7 +216,7 @@ function convertToGrams(quantity, unit) {
         case 'G':
             return qty;
         case 'ML':
-            return qty
+            return qty;
         case 'UN':
             return qty * 100; // validar se essa conversão faz sentido 
         default:
