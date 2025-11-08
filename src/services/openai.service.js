@@ -74,7 +74,7 @@ export async function generateDietSuggestion(userData) {
     const systemContent = `
       You are a professional nutritionist and a highly structured JSON generator. Your task is to output a perfect JSON object following the provided structure and rules.
 
-      **INSTRUCTION:** You MUST use the 'getFoodMacroData' tool to calculate the nutritional totals of the planned meals and verify that they meet the user's goals before finalizing the JSON response. The target caloric intake for this plan is **${target_calories} kcal**, with target macros: Protein (${target_protein}g), Carbs (${target_carbs}g), Fat (${target_fat}g). Your suggested total MUST be within 10% of the target values.
+      **INSTRUCTION:** You MUST use the 'getFoodMacroData' tool to calculate the nutritional totals of the planned meals and verify that they meet the user's goals before finalizing the JSON response. The target caloric intake for this plan is **${target_calories} kcal**, with target macros: Protein (${target_protein}g), Carbs (${target_carbs}g), Fat (${target_fat}g). Your suggested total MUST be within 5% of the target values, especially for Calories and Protein.
 
       **STRICT OUTPUT PROTOCOL:**
       1.  **Structure:** The output MUST contain four keys ('breakfast', 'lunch', 'dinner', 'snacks'). Each of these keys MUST contain an **OBJECT**.
