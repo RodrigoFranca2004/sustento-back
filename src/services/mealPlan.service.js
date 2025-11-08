@@ -36,23 +36,42 @@ export async function suggestMealPlan(data) {
   });
 
   if (!userMeasurements) {
-    throw new Error(`User with ID ${id} not found.`);
+    throw new Error(`User with ID ${data.user_id} not found.`);
   }
 
-  const suggestedMeals = await aiService.generateDietSuggestion(userMeasurements);
-
-  let mealPlanId = data.meal_plan_id ? data.meal_plan_id: null;
+  let mealPlanId = data.meal_plan_id ? Number(data.meal_plan_id) : null;
+  let targetNutrients = {};
 
   if (!data.meal_plan_id) {
     let selfCreatedMealPlan = await createMealPlan({
-      plan_name: data.plan_name ? data.plan_name: "selfCreated",
+      plan_name: data.plan_name ? data.plan_name : "Personalized Nutrition Plan",
       source: "AUTOMATIC",
-      user_id: data.user_id
+      user_id: data.user_id,
     });
 
     mealPlanId = selfCreatedMealPlan.plan_id;
+    targetNutrients = await calculateTargetNutrients(mealPlanId);
 
-    for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) {
+  } else {
+    mealPlanId = Number(data.meal_plan_id);
+
+    const originalTargets = await calculateTargetNutrients(mealPlanId);
+    const currentPlanTotals = await calculatePlanTotals(mealPlanId);
+
+    targetNutrients = {
+      target_calories: Number(originalTargets.target_calories) - Number(currentPlanTotals.total_calories),
+      target_protein: Number(originalTargets.target_protein) - Number(currentPlanTotals.total_protein),
+      target_carbs: Number(originalTargets.target_carbs) - Number(currentPlanTotals.total_carbs),
+      target_fat: Number(originalTargets.target_fat) - Number(currentPlanTotals.total_fat),
+    }; 
+  }
+
+  const suggestedMeals = await aiService.generateDietSuggestion({
+    ...userMeasurements,
+    ...targetNutrients,
+  });
+
+  for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) {
     const selfCreatedMeal = await createMeal({
       meal_name: mealName,
       meal_type: "FIXED",
@@ -63,25 +82,21 @@ export async function suggestMealPlan(data) {
       const alimentRecord = await prisma.aliments.findFirst({
         where: { name: alimentData.name },
         select: { aliment_id: true },
-      })
+      });
 
       if (!alimentRecord) {
         continue;
       }
 
       await createMealAliment({
-        quantity: alimentData.quantity,
+        quantity: Number(alimentData.quantity),
         measurement_unit: alimentData.measurement_unit.toUpperCase(),
         meal_id: selfCreatedMeal.meal_id,
         aliment_id: alimentRecord.aliment_id,
-      })
+      });
     }
   }
-  } else {
-    const presetMealPlan = getMealPlan(data.meal_plan_id);
 
-  }
-  
   let fullMealPlanInfo = await prisma.mealPlans.findUnique({
     where: { plan_id: Number(mealPlanId) },
     include: {
@@ -94,17 +109,16 @@ export async function suggestMealPlan(data) {
           },
         },
       },
-      user: true
+      user: true,
     },
   });
 
-  const planDetails = await calculatePlanTotals(mealPlanId);
+  const finalPlanTotals = await calculatePlanTotals(mealPlanId);
 
   return {
-    planDetails: planDetails,
-    totals: fullMealPlanInfo
+    planDetails: finalPlanTotals,
+    totals: fullMealPlanInfo,
   };
-
 }
 
 export async function listMealPlans() {
@@ -190,7 +204,6 @@ async function calculateTargetNutrients(mealPlanId) {
   let target_fat = Math.floor((target_calories * 0.3) / 9);
   let target_carbs = Math.floor((target_calories * 0.5) / 4);
 
-  // Guarantees consistence between calories and nutrients subtracting the difference from carbs (worts scenario its 17kcal)
   let total_calc = target_protein*4 + target_fat*9 + target_carbs*4;
   let diff = Math.round(target_calories - total_calc)
 
@@ -218,14 +231,14 @@ export function convertToGrams(quantity, unit) {
         case 'ML':
             return qty;
         case 'UN':
-            return qty * 100; // validar se essa conversão faz sentido 
+            return qty * 100;
         default:
             return qty;
     }
 }
 
 async function calculatePlanTotals(mealPlanId) {
-  const planDetails = await prisma.mealPlans.findUnique({
+    const planDetails = await prisma.mealPlans.findUnique({
         where: { plan_id: Number(mealPlanId) },
         include: {
             Meals: {
@@ -274,10 +287,10 @@ async function calculatePlanTotals(mealPlanId) {
             const scale = itemQuantityGrams / 100;
 
             if (item) {
-                total_calories += Number(item.calories_100g) * scale;
-                total_protein += Number(item.protein_100g) * scale;
-                total_carbs += Number(item.carbs_100g) * scale;
-                total_fat += Number(item.fat_100g) * scale;
+                total_calories += (Number(item.calories_100g) || 0) * scale;
+                total_protein += (Number(item.protein_100g) || 0) * scale;
+                total_carbs += (Number(item.carbs_100g) || 0) * scale;
+                total_fat += (Number(item.fat_100g) || 0) * scale;
             }
         }
     }
