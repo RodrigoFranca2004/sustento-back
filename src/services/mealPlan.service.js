@@ -77,6 +77,10 @@ export async function suggestMealPlan(data) {
       })
     }
   }
+  } else {
+    const presetMealPlan = getMealPlan(data.meal_plan_id);
+
+    return calculatePlanTotals(data.meal_plan_id);
   }
 
   let fullMealPlanInfo = await prisma.mealPlans.findUnique({
@@ -195,4 +199,88 @@ async function calculateTargetNutrients(mealPlanId) {
   };
 
   return target_nutrients;
+}
+
+function convertToGrams(quantity, unit) {
+    const qty = Number(quantity);
+    if (isNaN(qty)) return 0;
+    
+    unit = unit.toUpperCase();
+
+    switch (unit) {
+        case 'G':
+            return qty;
+        case 'ML':
+            return qty
+        case 'UN':
+            return qty * 100; // validar se essa conversão faz sentido 
+        default:
+            return qty;
+    }
+}
+
+async function calculatePlanTotals(mealPlanId) {
+  const planDetails = await prisma.mealPlans.findUnique({
+        where: { plan_id: Number(mealPlanId) },
+        include: {
+            Meals: {
+                include: {
+                    MealAliments: {
+                        select: {
+                            quantity: true,
+                            measurement_unit: true,
+                            aliment: {
+                                select: {
+                                    calories_100g: true,
+                                    protein_100g: true,
+                                    carbs_100g: true,
+                                    fat_100g: true,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!planDetails || !planDetails.Meals) {
+        return {
+            total_calories: 0,
+            total_protein: 0,
+            total_carbs: 0,
+            total_fat: 0
+        };
+    }
+
+    let total_calories = 0;
+    let total_protein = 0;
+    let total_carbs = 0;
+    let total_fat = 0;
+
+    for (const meal of planDetails.Meals) {
+        for (const mealAliment of meal.MealAliments) {
+            
+            const item = mealAliment.aliment;
+            const unit = mealAliment.measurement_unit;
+            const quantity = mealAliment.quantity;
+
+            const itemQuantityGrams = convertToGrams(quantity.toString(), unit);
+            const scale = itemQuantityGrams / 100;
+
+            if (item) {
+                total_calories += Number(item.calories_100g) * scale;
+                total_protein += Number(item.protein_100g) * scale;
+                total_carbs += Number(item.carbs_100g) * scale;
+                total_fat += Number(item.fat_100g) * scale;
+            }
+        }
+    }
+
+    return {
+        total_calories: total_calories.toFixed(2),
+        total_protein: total_protein.toFixed(2),
+        total_carbs: total_carbs.toFixed(2),
+        total_fat: total_fat.toFixed(2),
+    };
 }
