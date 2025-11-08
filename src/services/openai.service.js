@@ -30,7 +30,7 @@ export async function generateDietSuggestion(userData) {
       1.  **Structure:** The output MUST contain four keys ('breakfast', 'lunch', 'dinner', 'snacks'). Each of these keys MUST contain an **OBJECT**.
       2.  **Item Keys:** The nested object (e.g., 'breakfast') MUST use sequential keys starting from 'item1' (e.g., 'item1', 'item2', 'item3', etc.).
       3.  **Item Value (CRITICAL CHANGE):** The value of each 'itemN' key MUST be an object with exactly three keys: **"name"** (string), **"quantity"** (number), and **"measurement_unit"** (string).
-      4.  **Unit Format (CRITICAL):** The "measurement_unit" value MUST be ONLY one of the following: **g, kg, ml, L, or unid** (for unit/slice/piece). The "quantity" MUST be a numerical value.
+      4.  **Unit Format (CRITICAL):** The "measurement_unit" value MUST be ONLY one of the following: **g, kg, ml, L, or un** (for unit/slice/piece). The "quantity" MUST be a numerical value.
           * **Example of Conversion:** "2 slices" MUST be converted to {"quantity": 2, "measurement_unit": "unid"}.
       5.  **Food Source:** You MUST only use ingredients and meals listed in the 'AVAILABLE FOODS' section.
       6.  **Total Calories:** You MUST NOT include the "totalCalories" key.
