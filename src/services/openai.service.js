@@ -1,177 +1,211 @@
 import { openai } from "../config/openai.js";
 import * as searchOrchestrator from '../services/combinedAliment.service.js';
-import { convertToGrams } from '../services/mealPlan.service.js';
-import { getFoodMacros } from './combinedAliment.service.js'
 
-async function validateMealItem(foodName, quantity, unit) {
-    const macroData = await getFoodMacros(foodName);
+const densityInstruction = (objective) => {
+    switch (objective) {
+        case 'GAIN_MUSCLE':
+            return 'CRITICAL INSTRUCTION: Since the goal is GAIN_MUSCLE, you MUST prioritize suggesting foods that are CALORIE-DENSER, HIGH IN PROTEIN, and/or RICH IN HEALTHY FATS to facilitate meeting the macro targets.';
+        case 'LOSE_WEIGHT':
+            return 'CRITICAL INSTRUCTION: Since the goal is LOSE_WEIGHT, you MUST prioritize suggesting foods that are HIGH IN VOLUME, HIGH IN FIBER, and/or LOW IN CALORIE-DENSITY (like lean protein and vegetables) to ensure satiety.';
+        case 'MAINTENANCE':
+        default:
+            return 'CRITICAL INSTRUCTION: Since the goal is MAINTENANCE, suggest a wide variety of nutrient-dense, whole foods to ensure a balanced diet.';
+    }
+};
+
+const tools = [];
+
+function calculatePlanTotalsSimulated(plan, availableFoods) {
+    const macroData = {};
     
-    if (!macroData) return { error: "Food not found in database." };
+    availableFoods.forEach(foodString => {
+        const nameMatch = foodString.match(/^(.+?)\s*\((.+?)\)$/);
+        if (nameMatch) {
+            const name = nameMatch[1].trim();
+            const details = nameMatch[2];
+            const calMatch = details.match(/Cal:\s*([\d.]+)/);
+            const protMatch = details.match(/Prot:\s*([\d.]+)/);
 
-    const itemQuantityGrams = convertToGrams(quantity.toString(), unit);
-    const scale = itemQuantityGrams / 100;
+            macroData[name] = {
+                cal: parseFloat(calMatch[1]),
+                prot: parseFloat(protMatch[1])
+            };
+        }
+    });
 
-    return {
-        food_name: foodName,
-        total_calories: (macroData.calories * scale).toFixed(2),
-        total_protein: (macroData.protein * scale).toFixed(2),
-        total_carbs: (macroData.carbs * scale).toFixed(2),
-        total_fat: (macroData.fat * scale).toFixed(2),
-    };
+    let total_calories = 0;
+    let total_protein = 0;
+    
+    for (const mealKey in plan) {
+        const meal = plan[mealKey];
+        if (typeof meal === 'object' && meal !== null) {
+            for (const itemKey in meal) {
+                const item = meal[itemKey];
+                
+                if (item && item.name && item.quantity) {
+                    const foodName = item.name.trim();
+                    const quantity = Number(item.quantity);
+                    const unit = item.measurement_unit ? item.measurement_unit.toUpperCase() : 'G';
+
+                    if (macroData[foodName] && quantity > 0) {
+                        let quantityGrams = quantity;
+
+                        if (unit === 'UN') {
+                            quantityGrams = quantity * 100;
+                        } else if (unit === 'KG') {
+                            quantityGrams = quantity * 1000;
+                        }
+
+                        const scale = quantityGrams / 100;
+
+                        total_calories += macroData[foodName].cal * scale;
+                        total_protein += macroData[foodName].prot * scale;
+                    }
+                }
+            }
+        }
+    }
+    return { total_calories, total_protein };
 }
-
-
-const tools = [
-  {
-    type: "function",
-    function: {
-      name: "getFoodMacroData",
-      description: "Calcula os macronutrientes (proteína, gordura, carboidratos e calorias) para uma quantidade específica de um alimento. Use esta função para garantir que a sugestão de dieta se alinhe com os objetivos calóricos e de macronutrientes do usuário.",
-      parameters: {
-        type: "object",
-        properties: {
-          food_name: {
-            type: "string",
-            description: "O nome completo e exato do alimento conforme listado no AVAILABLE FOODS (ex: 'Aveia, flocos, crua').",
-          },
-          quantity: {
-            type: "number",
-            description: "A quantidade numérica do alimento (ex: 50, 200).",
-          },
-          unit: {
-            type: "string",
-            description: "A unidade de medida (g, kg, ml, L, ou unid).",
-          },
-        },
-        required: ["food_name", "quantity", "unit"],
-      },
-    },
-  },
-];
 
 
 export async function generateDietSuggestion(userData) {
     const { name, weight, height, objective, activity_lvl, target_calories, target_protein, target_carbs, target_fat } = userData;
 
-    let availableFoodsString = "No specific food catalog provided."; 
+    const densityInstructionResult = densityInstruction(objective);
+    
+    const conceptPrompt = `
+        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 30 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
+        
+        ${densityInstructionResult}
+        
+        Output only a JSON array of strings, without any other text.
+    `;
 
-    try {
-        const { products } = await searchOrchestrator.searchCombined({ query: null }); 
-        const foodNamesArray = products.map(p => p.name || `${p.brand} product`);
-        
-        if (foodNamesArray.length > 0) {
-            availableFoodsString = foodNamesArray.join(', ');
-        }
-        
-        if (foodNamesArray.length === 0) {
-             console.warn("Catalog search returned an empty list. AI will use generic foods.");
-        }
-        
-    } catch (e) {
-        console.error("Failed to retrieve available food list from combined service:", e.message);
+    const conceptCompletion = await openai.chat.completions.create({
+        model: "gpt-4-turbo", 
+        messages: [
+            { role: "system", content: "You are a professional nutrition expert. Your only task is to generate JSON output." },
+            { role: "user", content: conceptPrompt },
+        ],
+        temperature: 0.8, 
+        max_tokens: 600,
+        response_format: { type: "json_object" },
+    });
+    
+    const rawConcepts = JSON.parse(conceptCompletion.choices[0].message.content); 
+    const conceptArray = rawConcepts && rawConcepts.foods ? rawConcepts.foods : [];
+    const foodNamesToSearch = conceptArray.filter(c => typeof c === 'string');
+
+    if (foodNamesToSearch.length === 0) {
+        throw new Error("Could not find any suitable foods in the database or external API to generate the diet plan.");
     }
 
-    const systemContent = `
-      You are a professional nutritionist and a highly structured JSON generator. Your task is to output a perfect JSON object following the provided structure and rules.
+    let availableFoodsFinal = [];
+    
+    for (const concept of foodNamesToSearch) {
+        const result = await searchOrchestrator.searchCombined({ query: concept, maxResults: 10 });
+        
+        if (result && result.products && result.products.length > 0) {
+            const product = result.products[0];
+            const macros = product.nutrients;
+            
+            const cal = Number(macros.calories_100g) || 0;
+            const prot = Number(macros.protein_100g) || 0;
+            const carb = Number(macros.carbs_100g) || 0;
+            const fat = Number(macros.fat_100g) || 0;
 
-      **INSTRUCTION:** You MUST use the 'getFoodMacroData' tool to calculate the nutritional totals of the planned meals and verify that they meet the user's goals before finalizing the JSON response. The target caloric intake for this plan is **${target_calories} kcal**, with target macros: Protein (${target_protein}g), Carbs (${target_carbs}g), Fat (${target_fat}g). Your suggested total MUST be within 5% of the target values, especially for Calories and Protein.
-
-      **STRICT OUTPUT PROTOCOL:**
-      1.  **Structure:** The output MUST contain four keys ('breakfast', 'lunch', 'dinner', 'snacks'). Each of these keys MUST contain an **OBJECT**.
-      2.  **Item Keys:** The nested object (e.g., 'breakfast') MUST use sequential keys starting from 'item1' (e.g., 'item1', 'item2', 'item3', etc.).
-      3.  **Item Value (CRITICAL CHANGE):** The value of each 'itemN' key MUST be an object with exactly three keys: **"name"** (string), **"quantity"** (number), and **"measurement_unit"** (string).
-      4.  **Unit Format (CRITICAL):** The "measurement_unit" value MUST be ONLY one of the following: **g, kg, ml, L, or un** (for unit/slice/piece). The "quantity" MUST be a numerical value.
-          * **Example of Conversion:** "2 slices" MUST be converted to {"quantity": 2, "measurement_unit": "un"}.
-      5.  **Food Source:** You MUST only use ingredients and meals listed in the 'AVAILABLE FOODS' section.
-      6.  **Total Calories:** You MUST NOT include the "totalCalories" key.
-
-      The required JSON format is:
-      {
-        "breakfast": {
-          "item1": { "name": "Food 1 Name", "quantity": 100, "measurement_unit": "g" },
-          "item2": { "name": "Food 2 Name", "quantity": 200, "measurement_unit": "ml" }
-        },
-        "lunch": { ... },
-        "dinner": { ... },
-        "snacks": { ... }
-      }
-    `;
-
-    const prompt = `
-      You are a professional nutritionist.
-      Generate a personalized diet suggestion for:
-      - Name: ${name}
-      - Weight: ${weight} kg
-      - Height: ${height} cm
-      - Goal: ${objective}
-      - Activity level: ${activity_lvl}
-
-      AVAILABLE FOODS:
-      [${availableFoodsString}] 
-
-      **IMMEDIATE ACTION REQUIRED:** You MUST strictly adhere to the **STRICT OUTPUT PROTOCOL** defined in the system message. Use the 'getFoodMacroData' tool for calculation validation.
-
-      Output a structured JSON with:
-      {
-        "breakfast": { "item1": { ... }, ... },
-        "lunch": { ... },
-        "dinner": { ... },
-        "snacks": { ... },
-      }
-      Return to me just the JSON, without any other info or it will break my code. Use the specified **JSON** format.
-    `;
-
-  try {
-    let messages = [
-        { role: "system", content: systemContent },
-        { role: "user", content: prompt },
-    ];
-
-    for (let i = 0; i < 5; i++) {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4-turbo", 
-            messages: messages,
-            tools: tools,
-            tool_choice: "auto",
-            temperature: 0.2, 
-            max_tokens: 2048,
-            response_format: { type: "json_object" },
-        });
-
-        const responseMessage = completion.choices[0].message;
-
-        if (responseMessage.tool_calls) {
-            const toolCalls = responseMessage.tool_calls;
-            messages.push(responseMessage);
-
-            for (const toolCall of toolCalls) {
-                const functionName = toolCall.function.name;
-                const functionArgs = JSON.parse(toolCall.function.arguments);
-
-                if (functionName === "getFoodMacroData") {
-                    const result = await validateMealItem(
-                        functionArgs.food_name, 
-                        functionArgs.quantity, 
-                        functionArgs.unit
-                    );
-                    
-                    messages.push({
-                        tool_call_id: toolCall.id,
-                        role: "tool",
-                        content: JSON.stringify(result),
-                    });
-                }
+            if (cal > 0 && prot > 0) {
+                 availableFoodsFinal.push(
+                    `${product.name} (Cal: ${cal.toFixed(1)}, Prot: ${prot.toFixed(1)}, Carb: ${carb.toFixed(1)}, Fat: ${fat.toFixed(1)})`
+                );
             }
-        } else {
-            const content = responseMessage.content;
-            return JSON.parse(content);
         }
     }
     
-    throw new Error("AI failed to generate final response after maximum tool calls.");
+    const availableFoodsString = availableFoodsFinal.join('; ');
 
-  } catch (error) {
-      console.error("Error in OpenAI API call:", error);
-      throw error;
-  }
+    if (availableFoodsFinal.length === 0) {
+        throw new Error("Could not find any suitable foods in the database or external API to generate the diet plan.");
+    }
+    
+    let finalDietObject = {};
+    let currentPlan = { calories: 0, protein: 0, plan: {} };
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        const remainingCal = Math.max(0, target_calories - currentPlan.calories);
+        const remainingProt = Math.max(0, target_protein - currentPlan.protein);
+        
+        if (remainingCal <= target_calories * 0.10 && remainingProt <= target_protein * 0.10 && attempt > 1) {
+            break;
+        }
+
+        const promptInstruction = attempt === 1 
+            ? `Target Calories: ${target_calories} kcal | Target Protein: ${target_protein}g. **IMMEDIATE ACTION REQUIRED:** Using the macro data provided in the AVAILABLE FOODS list, calculate and generate a diet that meets the targets and adheres to the STRICT OUTPUT PROTOCOL.`
+            : `**CORRECTION ATTEMPT ${attempt}:** The current plan has a deficit of ${remainingCal.toFixed(0)} kcal and ${remainingProt.toFixed(0)}g of protein. Generate **ONLY** the additional meals/snacks (e.g., 'snacks_add1', 'lunch_add1') needed to cover this remaining deficit. You MUST prioritize closing the gap in this attempt. The previous plan was: ${JSON.stringify(currentPlan.plan)}`;
+
+        const systemContent = `
+          You are a professional nutritionist and a highly structured JSON generator. Your task is to output a perfect JSON object following the provided structure and rules.
+
+          **INSTRUCTION:** Use the calorie and macro information provided in the AVAILABLE FOODS list to ensure the total suggested diet is within 10% of the target values. When generating the plan for the GAIN_MUSCLE objective, prioritize exceeding the target slightly rather than falling short.
+
+          **STRICT OUTPUT PROTOCOL:**
+          1.  **Structure:** The output MUST contain four keys ('breakfast', 'lunch', 'dinner', 'snacks'). Each of these keys MUST contain an **OBJECT**.
+          2.  **Item Keys:** The nested object (e.g., 'breakfast') MUST use sequential keys starting from 'item1' (e.g., 'item1', 'item2', 'item3', etc.).
+          3.  **Item Value (CRITICAL CHANGE):** The value of each 'itemN' key MUST be an object with exactly three keys: **"name"** (string), **"quantity"** (number), and **"measurement_unit"** (string).
+          4.  **Unit Format (CRITICAL):** The "measurement_unit" value MUST be ONLY one of the following: **g, kg, ml, L, or un**. The "quantity" MUST be a numerical value.
+              * **RULE ADDITION:** You MUST use **ML** for all liquids (like yogurt) and **UN** for countable items (like banana or slices of bread).
+              * **Example of Conversion:** {"quantity": 2, "measurement_unit": "un"}.
+          5.  **Food Source:** You MUST only use the exact names of ingredients listed in the 'AVAILABLE FOODS' section.
+          6.  **Total Calories:** You MUST NOT include the "totalCalories" key.
+
+          The required JSON format is:
+          {
+            "breakfast": { "item1": { "name": "Aveia, flocos, crua", "quantity": 100, "measurement_unit": "G" }, "item2": { "name": "Iogurte Natural Integral", "quantity": 200, "measurement_unit": "ML" } }, // 💡 Exemplo corrigido
+            "lunch": { ... },
+            "dinner": { ... },
+            "snacks": { ... }
+          }
+        `;
+        
+        const finalPlanPrompt = `
+          Generate a personalized diet suggestion for:
+          - Goal: ${objective}
+          - Target Calories: ${target_calories} kcal | Target Protein: ${target_protein}g.
+
+          AVAILABLE FOODS (Name + Macro/100g): [${availableFoodsString}] 
+
+          ${promptInstruction}
+
+          Output a structured JSON. Return to me just the JSON, without any other info or it will break my code.
+        `;
+
+        try {
+            const finalCompletion = await openai.chat.completions.create({
+                model: "gpt-4-turbo", 
+                messages: [
+                     { role: "system", content: systemContent },
+                     { role: "user", content: finalPlanPrompt },
+                ],
+                temperature: 0.2, 
+                max_tokens: 3000,
+                response_format: { type: "json_object" },
+            });
+            
+            const newPlanSegment = JSON.parse(finalCompletion.choices[0].message.content);
+            
+            finalDietObject = { ...finalDietObject, ...newPlanSegment };
+
+            const simulatedTotals = calculatePlanTotalsSimulated(finalDietObject, availableFoodsFinal);
+            
+            currentPlan.calories = simulatedTotals.total_calories;
+            currentPlan.protein = simulatedTotals.total_protein;
+            currentPlan.plan = finalDietObject;
+
+        } catch (error) {
+            console.error(`AI generation error on attempt ${attempt}:`, error);
+        }
+    }
+
+    return finalDietObject;
 }
