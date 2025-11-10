@@ -41,6 +41,7 @@ export async function suggestMealPlan(data) {
 
   let mealPlanId = data.meal_plan_id ? Number(data.meal_plan_id) : null;
   let targetNutrients = {};
+  let newPlanCreated = !data.meal_plan_id;
 
   if (!data.meal_plan_id) {
     let selfCreatedMealPlan = await createMealPlan({
@@ -48,7 +49,6 @@ export async function suggestMealPlan(data) {
       source: "AUTOMATIC",
       user_id: data.user_id,
     });
-
     mealPlanId = selfCreatedMealPlan.plan_id;
     targetNutrients = await calculateTargetNutrients(mealPlanId);
 
@@ -63,7 +63,10 @@ export async function suggestMealPlan(data) {
       target_protein: Number(originalTargets.target_protein) - Number(currentPlanTotals.total_protein),
       target_carbs: Number(originalTargets.target_carbs) - Number(currentPlanTotals.total_carbs),
       target_fat: Number(originalTargets.target_fat) - Number(currentPlanTotals.total_fat),
-    }; 
+    };
+    
+    await prisma.mealAliments.deleteMany({ where: { meal: { plan_id: mealPlanId } } });
+    await prisma.meals.deleteMany({ where: { plan_id: mealPlanId } });
   }
 
   const suggestedMeals = await aiService.generateDietSuggestion({
@@ -97,23 +100,53 @@ export async function suggestMealPlan(data) {
     }
   }
 
+  const finalPlanTotals = await calculatePlanTotals(mealPlanId);
+
   let fullMealPlanInfo = await prisma.mealPlans.findUnique({
     where: { plan_id: Number(mealPlanId) },
-    include: {
+    select: {
+      plan_id: true,
+      plan_name: true,
+      source: true,
+      active: true,
+      target_calories: true,
+      target_protein: true,
+      target_carbs: true,
+      target_fat: true,
+      user_id: true,
+      created_at: true,
+      
       Meals: {
-        include: {
+        select: {
+          meal_id: true,
+          meal_name: true,
+          meal_type: true,
           MealAliments: {
-            include: {
-              aliment: true,
+            select: {
+              quantity: true,
+              measurement_unit: true,
+              meal_aliment_id: true,
+              aliment: {
+                select: {
+                  aliment_id: true,
+                  name: true,
+                  brand: true,
+                  image_url: true,
+                },
+              },
             },
           },
         },
       },
-      user: true,
+      user: {
+          select: {
+              user_id: true,
+              name: true,
+              email: true,
+          }
+      }
     },
   });
-
-  const finalPlanTotals = await calculatePlanTotals(mealPlanId);
 
   return {
     planDetails: finalPlanTotals,
