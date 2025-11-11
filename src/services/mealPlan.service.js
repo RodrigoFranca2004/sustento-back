@@ -32,12 +32,25 @@ export async function suggestMealPlan(data) {
       height: true,
       objective: true,
       activity_lvl: true,
+      UserRestrictions: {
+          select: {
+              restriction: {
+                  select: { restriction_name: true }
+              }
+          }
+      }
     },
   });
 
   if (!userMeasurements) {
     throw new Error(`User with ID ${data.user_id} not found.`);
   }
+
+  const restrictions = userMeasurements.UserRestrictions
+    .map(ur => ur.restriction.restriction_name)
+    .join(', ');
+
+  const formattedRestrictions = restrictions || 'NONE';
 
   let mealPlanId = data.meal_plan_id ? Number(data.meal_plan_id) : null;
   let targetNutrients = {};
@@ -72,6 +85,7 @@ export async function suggestMealPlan(data) {
   const suggestedMeals = await aiService.generateDietSuggestion({
     ...userMeasurements,
     ...targetNutrients,
+    restrictions: formattedRestrictions,
   });
 
   for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) {
