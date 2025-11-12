@@ -146,6 +146,14 @@ export async function generateDietSuggestion(userData) {
             const macros = product.nutrients;
 
             const foodVetos = getFoodRestrictions(product);
+
+            const isUltraprocessed = product.novaGroup >= 4;
+            const hasTooManyWarnings = product.anvisaWarnings && product.anvisaWarnings.length >= 3;
+            
+            if (isUltraprocessed || hasTooManyWarnings){
+                continue;
+            };
+
             let violatesRestriction = false;
             
             if (userRestrictionsArray.includes('GLUTEN_FREE') && foodVetos.includes('CONTAINS_GLUTEN')) {
