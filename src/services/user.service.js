@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.js";
 
+import path from 'path';
 import bcrypt from "bcrypt";
 import { startOfDay } from "../utils/startOfDay.js";
 import { endOfDay } from "../utils/endOfDay.js";
@@ -18,6 +19,7 @@ const SELECT_USER_WITHOUT_PASSWORD = {
   active_plan_id: true,
   created_at: true,
   updated_at: true,
+  profile_picture_url: true
 };
 
 export async function listUsers() {
@@ -214,4 +216,22 @@ async function saveUserEvolution(id) {
       created_at: new Date(),
     },
   });
+}
+
+export async function updateProfilePicture(userId, file) {
+    if (!file) {
+        throw new Error("Nenhum arquivo recebido.");
+    }
+
+    const relativePath = path.join('/uploads', 'profile-pictures', file.filename).replace(/\\/g, '/');
+
+    const updatedUser = await prisma.users.update({
+        where: { user_id: Number(userId) },
+        data: {
+            profile_picture_url: relativePath,
+        },
+        select: SELECT_USER_WITHOUT_PASSWORD,
+    });
+
+    return updatedUser;
 }
