@@ -3,6 +3,7 @@ import { prisma } from "../config/prisma.js";
 import bcrypt from "bcrypt";
 import { startOfDay } from "../utils/startOfDay.js";
 import { endOfDay } from "../utils/endOfDay.js";
+import { createLog } from "./log.service.js";
 
 const SELECT_USER_WITHOUT_PASSWORD = {
   user_id: true,
@@ -74,6 +75,13 @@ export async function updateUser(id, data) {
     await saveUserEvolution(id);
   }
 
+  await createLog({
+        message: "AN USER HAD ITS DATA UPDATED",
+        entity_id: id,
+        entity_id: "USER",
+        action: "UPDATE"
+      });
+
   return await prisma.users.update({
     where: { user_id: Number(id) },
     data,
@@ -82,6 +90,12 @@ export async function updateUser(id, data) {
 }
 
 export async function deleteUser(id) {
+  await createLog({
+        message: "AN USER WAS SUCCESSFULLY DELETED",
+        entity_id: id,
+        entity_id: "USER",
+        action: "DELETE"
+      });
   return await prisma.users.delete({
     where: { user_id: Number(id) },
   });

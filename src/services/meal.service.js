@@ -1,8 +1,12 @@
 import { prisma } from "../config/prisma.js";
 import { convertHoursToDatetime } from "../utils/convertHoursToDatetime.js";
-
+import { createLog } from "./log.service.js";
 
 export async function createMeal(data) {
+  await createLog({
+        message: "A MEAL WAS SUCCESSFULLY CREATED",
+        action: "CREATE"
+      });
   const time = data.time ? convertHoursToDatetime(data.time) : null;
   return await prisma.meals.create({
     data: {
@@ -23,6 +27,12 @@ export async function getMeal(id) {
 }
 
 export async function updateMeal(id, data) {
+  await createLog({
+        message: "A MEAL WAS SUCCESSFULLY UPDATED",
+        entity_id: data.meal_id,
+        entity_type: "MEAL",
+        action: "UPDATE"
+      });
   const time = data.time ? convertHoursToDatetime(data.time) : undefined;
   return await prisma.meals.update({
     where: { meal_id: Number(id) },
@@ -34,6 +44,12 @@ export async function updateMeal(id, data) {
 }
 
 export async function deleteMeal(id) {
+  await createLog({
+        message: "A MEAL WAS SUCCESSFULLY DELETED",
+        entity_id: id,
+        entity_type: "MEAL",
+        action: "DELETE"
+      });
   return await prisma.meals.delete({
     where: { meal_id: Number(id) },
   });

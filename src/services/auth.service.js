@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import { transporter } from "../config/mailer.js";
+import { createLog } from "./log.service.js";
 
 export async function register(data) {
     const { name, email, password} = data;
@@ -43,6 +44,11 @@ export async function login(email, password) {
         { expiresIn: "1h"}
     );
 
+    await createLog({
+        message: "USER HAS SUCCESSFULLY LOGGED IN",
+        user_id: user.user_id
+      });
+
     return {token, id: user.user_id};
 }
 
@@ -67,6 +73,11 @@ export async function requestPasswordReset(email) {
         html: `<p>Clique no link para alterar sua senha:</p>
         <a href="${resetLink}">${resetLink}</a>`
     });
+
+    await createLog({
+        message: "A PASSWORD RESET EMAIL WAS SENT TO THE USER",
+        user_id: user.user_id
+      });
     
     return {message: "Reset link sent to email"};
 }
@@ -82,6 +93,11 @@ export async function resetPassword(token, newPassword) {
         where: {user_id: reset.user_id},
         data: { hash_password: hash}
     });
+
+    await createLog({
+        message: "THE USER PASSWORD WAS SUCCESSFULLY UPTATED",
+        user_id: reset.user_id
+      });
 
     return await prisma.passwordResets.delete({where: {id: reset.id}});
 }

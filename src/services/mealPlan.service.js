@@ -2,6 +2,7 @@ import { prisma } from "../config/prisma.js";
 import * as aiService from "../services/openai.service.js";
 import { createMeal } from "./meal.service.js";
 import { createMealAliment } from "./mealAliment.service.js"
+import { createLog } from "./log.service.js";
 
 export async function createMealPlan(data) {
   let mealPlan = await prisma.mealPlans.create({
@@ -19,6 +20,11 @@ export async function createMealPlan(data) {
     target_fat,
     target_carbs,
   });
+
+  await createLog({
+        message: "A MEAL PLAN WAS SUCCESSFULLY CREATED",
+        action: "CREATE"
+      });
 
   return mealPlan;
 }
@@ -162,6 +168,12 @@ export async function suggestMealPlan(data) {
     },
   });
 
+  await createLog({
+        message: "THE USER REQUESTED AN AI GENERATED MEAL PLAN",
+        entity_id: data.user_id,
+        entity_type: "MEAL PLAN"
+      });
+
   return {
     planDetails: finalPlanTotals,
     totals: fullMealPlanInfo,
@@ -179,6 +191,12 @@ export async function getMealPlan(id) {
 }
 
 export async function updateMealPlan(id, data) {
+  await createLog({
+        message: "A MEAL PLAN WAS SUCCESSFULLY UPDATED",
+        entity_id: id,
+        entity_type: "MEAL PLAN",
+        action: "UPDATE"
+      });
   return await prisma.mealPlans.update({
     where: { plan_id: Number(id) },
     data,
@@ -186,6 +204,12 @@ export async function updateMealPlan(id, data) {
 }
 
 export async function deleteMealPlan(id) {
+  await createLog({
+        message: "A MEAL PLAN WAS SUCCESSFULLY DELETED",
+        entity_id: id,
+        entity_type: "MEAL PLAN",
+        action: "DELETE"
+      });
   return await prisma.mealPlans.delete({
     where: { plan_id: Number(id) },
   });
