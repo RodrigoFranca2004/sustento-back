@@ -12,6 +12,7 @@ import authRoutes from "./auth.routes.js"
 import fatSecretRoutes from "./fatSecret.routes.js"
 import openFoodRoutes from "./openFood.routes.js"
 import openAiRoutes from "./openai.routes.js"
+import logRoutes from "./log.routes.js"
 
 const router = Router()
 
@@ -28,5 +29,6 @@ router.use("/auth", authRoutes);
 router.use("/fatSecret", fatSecretRoutes);
 router.use("/openFood", openFoodRoutes);
 router.use("/openai", openAiRoutes);
+router.use("/logs", logRoutes);
 
 export default router
