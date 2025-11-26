@@ -3,7 +3,7 @@ import { createLog } from "./log.service.js";
 
 export async function createRestriction(data) {
   await createLog({
-      message: "ALLOWED RESTRICTIONS UPDATED",
+      message: "ALLOWED RESTRICTION CREATED",
       entity_type: "RESTRICTION",
       action: "CREATE"
     });
@@ -39,7 +39,7 @@ export async function updateRestriction(id, data) {
 
 export async function deleteRestriction(id) {
   await createLog({
-      message: "ALLOWED RESTRICTIONS UPDATED",
+      message: "ALLOWED RESTRICTION DELETED",
       entity_type: "RESTRICTION",
       entity_id: id,
       action: "DELETE"
