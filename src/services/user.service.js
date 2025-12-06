@@ -77,8 +77,8 @@ export async function updateUser(id, data) {
 
   await createLog({
         message: "AN USER HAD ITS DATA UPDATED",
-        entity_id: id,
-        entity_id: "USER",
+        entity_id: Number(id),
+        entity_type: "USER",
         action: "UPDATE"
       });
 
