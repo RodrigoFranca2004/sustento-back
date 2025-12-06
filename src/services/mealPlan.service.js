@@ -5,25 +5,24 @@ import { createMealAliment } from "./mealAliment.service.js"
 import { createLog } from "./log.service.js";
 
 export async function createMealPlan(data) {
-  let mealPlan = await prisma.mealPlans.create({
+  const { target_calories, target_protein, target_fat, target_carbs } =
+    await calculateTargetNutrients(data.user_id);
+
+  const mealPlan = await prisma.mealPlans.create({
     data: {
       ...data,
+      target_calories,
+      target_protein,
+      target_fat,
+      target_carbs,
     },
-  });
-
-  const { target_calories, target_protein, target_fat, target_carbs } =
-    await calculateTargetNutrients(mealPlan.plan_id);
-
-  mealPlan = await updateMealPlan(mealPlan.plan_id, {
-    target_calories,
-    target_protein,
-    target_fat,
-    target_carbs,
   });
 
   await createLog({
         message: "A MEAL PLAN WAS SUCCESSFULLY CREATED",
-        action: "CREATE"
+        action: "CREATE",
+        entity_type: "MEAL_PLAN",
+        entity_id: mealPlan.plan_id
       });
 
   return mealPlan;
@@ -215,11 +214,9 @@ export async function deleteMealPlan(id) {
   });
 }
 
-async function calculateTargetNutrients(mealPlanId) {
-  const mealPlanRow = await getMealPlan(mealPlanId);
-  const user_id = mealPlanRow.user_id;
+async function calculateTargetNutrients(userId) {
   const userRow = await prisma.users.findUnique({
-    where: { user_id: Number(user_id) },
+    where: { user_id: Number(userId) },
     select: {
       gender: true,
       height: true,
