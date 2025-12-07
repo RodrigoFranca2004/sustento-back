@@ -1,5 +1,4 @@
 /node_modules
 *.env
 prisma/migrations/20250921015804_test_migration
-
-/public/uploads/profile-pictures
+public/uploads/profile-pictures/
