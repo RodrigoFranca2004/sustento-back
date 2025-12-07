@@ -31,7 +31,8 @@ model Users {
   MealRecords         MealRecords[]
   Evolutions          UserEvolutions[]
   UserRestrictions    UserRestrictions[]
-  PasswordResets       PasswordResets[]
+  PasswordResets      PasswordResets[]
+  Logs                Logs[]
 }
 
 enum Gender{
@@ -277,3 +278,19 @@ model WaterRecords {
 }
 
 // MODEL WATER_RECORDS - END
+
+// MODEL LOGS - START
+
+model Logs {
+  log_id          Int       @id @default(autoincrement())
+  user_id       Int? 	   // Opcional, pois pode ser um log de sistema (null)
+  entity_type   String?   @db.VarChar(255)
+  entity_id     Int?
+  action        String?   // ['UPDATE', 'CREATE', 'DELETE']
+  message       String    @db.VarChar(255)
+  created_at    DateTime  @default(now())
+
+  user           Users?    @relation(fields: [user_id], references: [user_id])
+}
+
+// MODEL LOGS - END
