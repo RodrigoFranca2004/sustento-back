@@ -68,12 +68,12 @@ export async function suggestMealPlan(data) {
       user_id: data.user_id,
     });
     mealPlanId = selfCreatedMealPlan.plan_id;
-    targetNutrients = await calculateTargetNutrients(mealPlanId);
+    targetNutrients = await calculateTargetNutrients(data.user_id);
 
   } else {
     mealPlanId = Number(data.meal_plan_id);
 
-    const originalTargets = await calculateTargetNutrients(mealPlanId);
+    const originalTargets = await calculateTargetNutrients(data.user_id);
     const currentPlanTotals = await calculatePlanTotals(mealPlanId);
 
     targetNutrients = {

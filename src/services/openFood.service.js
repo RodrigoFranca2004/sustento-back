@@ -73,12 +73,12 @@ function transformProduct(product) {
 
     const cleanedNutrients = {
         calories_100g: product.nutriments?.["energy-kcal_100g"] ?? null,
-        protein_100g: product.nutriments?.proteins_100g ?? null,
+        proteins_100g: product.nutriments?.proteins_100g ?? null,
         carbs_100g: product.nutriments?.carbohydrates_100g ?? null,
         fat_100g: product.nutriments?.fat_100g ?? null,
         fiber_100g: product.nutriments?.fiber_100g ?? null,
         sugar_100g: product.nutriments?.sugars_100g ?? null,
-        saturated_fat_100g: product.nutriments?.["saturated-fat_100g"] ?? null,
+        saturatedFat_100g: product.nutriments?.["saturated-fat_100g"] ?? null,
         sodium_100g: product.nutriments?.sodium_100g ?? null,
     };
 
