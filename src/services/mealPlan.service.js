@@ -189,6 +189,14 @@ export async function getMealPlan(id) {
   });
 }
 
+export async function getMealsByPlanId(id) {
+  return await prisma.meals.findMany({
+    where: { 
+      plan_id: Number(id) 
+    },
+  });
+}
+
 export async function updateMealPlan(id, data) {
   await createLog({
         message: "A MEAL PLAN WAS SUCCESSFULLY UPDATED",

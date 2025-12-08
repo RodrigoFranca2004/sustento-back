@@ -47,3 +47,17 @@ export async function deleteMealPlan(req, res) {
   }
 }
 
+export async function getMealsByPlanId(req, res) {
+  try {
+    const planId = req.params.planId;
+    
+    const meals = await MealPlanService.getMealsByPlanId(planId);
+    
+    return res.status(200).json(meals); 
+    
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Erro ao buscar refeições do plano." });
+  }
+}
+
