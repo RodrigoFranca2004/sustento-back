@@ -63,14 +63,16 @@ export async function updateUser(id, data) {
     data.hash_password = await bcrypt.hash(data.hash_password, 10);
   }
 
-  // Calculate bmi every time weight or height are updated - also update userEvolution if body_fat or any of these two changes
   if (data.weight || data.height) {
-    const { bmi, bmi_category } = await calculateBmi(
+    const bmiResult = await calculateBmi(
       id,
       data.weight,
       data.height
     );
-    data.bmi = bmi;
+
+    if (bmiResult) {
+      data.bmi = bmiResult.bmi;
+    }
 
     await saveUserEvolution(id);
   } else if (data.body_fat) {
@@ -183,7 +185,7 @@ async function calculateBmi(id, paramWeight, paramHeight) {
     }
 
     if (!user.weight || !user.height) {
-      throw new Error("User is missing weight/height");
+      return null;
     }
   }
 
