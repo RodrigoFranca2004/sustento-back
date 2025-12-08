@@ -54,3 +54,30 @@ export async function deleteMeal(id) {
     where: { meal_id: Number(id) },
   });
 }
+
+export async function getMealAliments(meal_id) {
+  return await prisma.meals.findUnique({
+    where: { meal_id: Number(meal_id) },
+    select: {
+      meal_id: true,
+      meal_name: true,
+      time: true,
+      MealAliments: {
+        select: {
+          quantity: true,
+          measurement_unit: true,
+          aliment: {
+            select: {
+              aliment_id: true,
+              name: true,
+              brand: true,
+              calories_100g: true,
+              protein_100g: true,
+              carbs_100g: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
