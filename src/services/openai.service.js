@@ -105,9 +105,37 @@ export async function generateDietSuggestion(userData) {
 
     const restrictionStringPrompt = `**CRITICAL RESTRICTION:** The user has the following dietary restrictions: [${restrictions}]. You MUST NOT include any food that violates these restrictions in the final plan.`
     
-    const conceptPrompt = `
-        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 30 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
+    const isVeganOrVegetarian = restrictions.includes('VEGAN') || restrictions.includes('VEGETARIAN');
+
+    const cohesionProtocol = `
+        **COHESION & CULTURAL CONTEXT PROTOCOL (CRITICAL):**
+        You MUST structure the ingredients within each meal to form a coherent, palatable dish, not just a list of macros.
+
+        1.  **BREAKFAST:** Must include a primary Carbohydrate (Pão or Aveia) and a high-quality Protein source (Ovos, Queijo, or Iogurte).
         
+        2.  **LUNCH/DINNER (BRAZILIAN STAPLE):** Must strictly adhere to the following 4-part structure:
+            * REQUIRED BASE CARBOHYDRATE: Must include a PRIMARY STARCH (e.g., Arroz, Macarrão, Batata Doce).
+            * REQUIRED BASE LEGUME: Must include **Feijão** or Lentilha/Grão-de-Bico.
+            * REQUIRED PRIMARY ANIMAL PROTEIN: Must include **ONE** item from Peito de Frango, Carne Bovina, or Peixe.
+            * VEGETABLE/FIBER: At least one vegetable or salad source.
+
+        3.  **SNACKS:** Must focus on convenience (e.g., Castanhas, Frutas, Iogurte).
+        4.  **MACRO ADJUSTMENT:** Use the largest possible quantities of PRIMARY CARBOHYDRATES to meet the high caloric goal (${target_calories} kcal).
+    `;
+
+    const mandatoryInstruction = isVeganOrVegetarian
+    ? `**MANDATORY FOODS (VEGAN/VEGETARIAN):** The generated list MUST prioritize plant-based staples: Tofu, Grão-de-bico, Lentilha, Feijão preto, Pasta de Amendoim, Arroz integral, Batata Doce. You MUST completely ignore any instruction regarding animal protein.`
+    : `**MANDATORY FOODS (OMNIVORE):** The generated list MUST include staple proteins: Peito de Frango, Carne Bovina, Salmão, Ovos, Arroz integral, Feijão preto, Batata Doce.`;
+
+    const conceptPrompt = `
+        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 40 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
+        
+        **CRITICAL NAMING RULE (SEARCH OPTIMIZATION):** Names MUST be simple, short, and use NO parentheses, no complex descriptions, and NO synonyms. Use only single, direct search terms (e.g., 'Peito de Frango', 'Salmão', 'Ovo', 'Arroz integral', 'Feijão').
+
+        ${cohesionProtocol}
+
+        ${mandatoryInstruction}
+
         ${restrictions ? restrictionStringPrompt : ''}
 
         ${densityInstructionResult}
