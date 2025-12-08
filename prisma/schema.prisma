@@ -65,7 +65,7 @@ model PasswordResets {
   
   // foreign keys relations (imported)
   user_id Int
-  user Users @relation(fields: [user_id], references: [user_id])
+  user Users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
 // MODEL MEALPLANS - START
@@ -123,7 +123,7 @@ enum RestrictionName {
 model UserEvolutions {
   evolution_id   Int      @id @default(autoincrement())
   user_id        Int
-  user           Users    @relation(fields: [user_id], references: [user_id])
+  user Users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   weight         Decimal? @db.Decimal(5,2) // kg up to 999.99
   bmi            Decimal? @db.Decimal(5,2)
   body_fat       Decimal? @db.Decimal(5,2) // kg up to 999.99
@@ -144,7 +144,7 @@ model Meals {
 
   // foreign keys relations (imported)
   plan_id Int
-  plan MealPlans @relation(fields: [plan_id], references: [plan_id])
+  plan MealPlans @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
 
   // foreign keys relation (exported)
   MealAliments MealAliments[]
@@ -236,8 +236,8 @@ model MealRecords {
   created_at          DateTime @default(now())
 
 
-  user             Users    @relation(fields: [user_id], references: [user_id])
-  Meal             Meals  @relation(fields: [meal_id], references: [meal_id])
+  user             Users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  Meal             Meals  @relation(fields: [meal_id], references: [meal_id], onDelete: Cascade)
   aliment          Aliments   @relation(fields: [aliment_id], references: [aliment_id], onDelete: Cascade)
 }
 
@@ -253,7 +253,7 @@ model MealAliments {
 
   // foreign keys relations (imported)
   meal_id Int
-  meal Meals @relation(fields: [meal_id], references: [meal_id])
+  meal Meals @relation(fields: [meal_id], references: [meal_id], onDelete: Cascade)
 
   aliment_id Int
   aliment Aliments @relation(fields: [aliment_id], references: [aliment_id], onDelete: Cascade)
@@ -274,7 +274,7 @@ model WaterRecords {
 
   // foreign keys relations (imported)
   plan_id Int
-  plan MealPlans      @relation(fields: [plan_id], references: [plan_id])
+  plan MealPlans      @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
 }
 
 // MODEL WATER_RECORDS - END
