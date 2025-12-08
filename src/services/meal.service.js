@@ -74,6 +74,7 @@ export async function getMealAliments(meal_id) {
               calories_100g: true,
               protein_100g: true,
               carbs_100g: true,
+              fat_100g: true,
             },
           },
         },
