@@ -96,7 +96,7 @@ export async function updateUser(id, data) {
 export async function deleteUser(id) {
   await createLog({
         message: "AN USER WAS SUCCESSFULLY DELETED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_id: "USER",
         action: "DELETE"
       });

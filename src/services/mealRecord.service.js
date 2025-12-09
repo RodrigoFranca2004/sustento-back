@@ -34,7 +34,7 @@ export async function updateMealRecord(id, data) {
   const meal_moment = data.meal_moment ? convertTime(data.meal_moment) : undefined;
   await createLog({
         message: "A MEAL RECORD WAS SUCCESSFULLY UPDATED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_type: "MEAL RECORD",
         action: "UPDATE"
       });
@@ -50,7 +50,7 @@ export async function updateMealRecord(id, data) {
 export async function deleteMealRecord(id) {
   await createLog({
         message: "A MEAL RECORD WAS SUCCESSFULLY DELETED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_type: "MEAL RECORD",
         action: "DELETE"
       });

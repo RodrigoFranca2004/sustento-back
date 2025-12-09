@@ -200,7 +200,7 @@ export async function getMealsByPlanId(id) {
 export async function updateMealPlan(id, data) {
   await createLog({
         message: "A MEAL PLAN WAS SUCCESSFULLY UPDATED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_type: "MEAL PLAN",
         action: "UPDATE"
       });
@@ -213,7 +213,7 @@ export async function updateMealPlan(id, data) {
 export async function deleteMealPlan(id) {
   await createLog({
         message: "A MEAL PLAN WAS SUCCESSFULLY DELETED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_type: "MEAL PLAN",
         action: "DELETE"
       });

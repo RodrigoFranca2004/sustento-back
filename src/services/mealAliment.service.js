@@ -27,7 +27,7 @@ export async function getMealAliment(id) {
 export async function updateMealAliment(id, data) {
   await createLog({
         message: "A MEAL ALIMENT WAS SUCCESSFULLY UPDATED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_type: "MEAL ALIMENT",
         action: "UPDATE"
       });
@@ -40,7 +40,7 @@ export async function updateMealAliment(id, data) {
 export async function deleteMealAliment(id) {
   await createLog({
         message: "A MEAL ALIMENT WAS SUCCESSFULLY DELETED",
-        entity_id: id,
+        entity_id: Number(id),
         entity_type: "MEAL ALIMENT",
         action: "DELETE"
       });

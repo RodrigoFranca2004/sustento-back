@@ -28,7 +28,7 @@ export async function updateRestriction(id, data) {
     await createLog({
       message: "ALLOWED RESTRICTIONS UPDATED",
       entity_type: "RESTRICTION",
-      entity_id: id,
+      entity_id: Number(id),
       action: "UPDATE"
     });
     return await prisma.restrictions.update({
@@ -41,7 +41,7 @@ export async function deleteRestriction(id) {
   await createLog({
       message: "ALLOWED RESTRICTION DELETED",
       entity_type: "RESTRICTION",
-      entity_id: id,
+      entity_id: Number(id),
       action: "DELETE"
     });
   return await prisma.restrictions.delete({

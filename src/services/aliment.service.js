@@ -28,7 +28,7 @@ export async function updateAliment(id, data) {
   await createLog({
         message: "ALIMENT UPDATED",
         entity_type: "ALIMENT",
-        entity_id: id,
+        entity_id: Number(id),
         action: "UPDATE"
       });
   return await prisma.aliments.update({
@@ -41,7 +41,7 @@ export async function deleteAliment(id) {
   await createLog({
         message: "ALIMENT DELETED",
         entity_type: "ALIMENT",
-        entity_id: id,
+        entity_id: Number(id),
         action: "DELETE"
       });
   return await prisma.aliments.delete({
