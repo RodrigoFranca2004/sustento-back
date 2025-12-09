@@ -41,7 +41,7 @@ export async function login(email, password) {
     const token = jwt.sign(
         { userId: user.user_id, email: user.email},
         process.env.JWT_SECRET,
-        { expiresIn: "1h"}
+        { expiresIn: "24h"}
     );
 
     await createLog({
